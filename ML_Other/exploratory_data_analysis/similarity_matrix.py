@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import pandas as pd
 from sklearn.feature_selection import VarianceThreshold
@@ -17,7 +18,9 @@ def fread(path):
 def filter_approach_nonzero_features(raw_data, threshold=0.0001):
     apply_id_no = raw_data.iloc[:, 0]
     features = raw_data.iloc[:, 1:]
+
     selector = VarianceThreshold(threshold)
+    selector.fit(features)
 
     return_data = pd.concat([pd.DataFrame(apply_id_no), pd.DataFrame(selector.fit_transform(features))], axis=1)
     return_data.columns = list(np.arange(return_data.shape[1]))
@@ -28,33 +31,34 @@ def filter_approach_nonzero_features(raw_data, threshold=0.0001):
 def features_k_means(raw_data, K=5):
     apply_id_no = raw_data.iloc[:, 0]
     # 特征 k-means , 对原始数据集转置即可
-    features_transpose = raw_data.iloc[:, 1:].values.T
+    features = raw_data.iloc[:, 1:].values.T
 
     scaler = StandardScaler()
-    features_transposes_scaled = scaler.fit_transform(features_transpose)
+    features_scaled = scaler.fit_transform(features)
 
-    kmeans = KMeans(n_clusters=K, random_state=0).fit(features_transposes_scaled)
+    kmeans = KMeans(n_clusters=K, random_state=0).fit(features_scaled)
     # 每个特征所属簇的 array
-    clusters = kmeans.predict(features_transposes_scaled)
-
+    clusters = kmeans.predict(features_scaled)
+    print(clusters)
     temp = pd.DataFrame(apply_id_no)
     for k in np.arange(K):
         # 属于一个簇的特征 , PCA 之前矩阵转置回 (sample, features)
-        features_k = features_transpose[list(clusters == k), :].T
+        features_k = features[list(clusters == k), :].T
         # 属于一个簇的特征数超过 1 , PCA 且只保留一个主成分
         if features_k.shape[1] > 1:
             pca = PCA(n_components=1)
             features_k = pca.fit_transform(features_k)
 
-        scaler = StandardScaler()
-        features_k_scaled = scaler.fit_transform(features_k)
+        # scaler = StandardScaler()
+        # features_k_scaled = scaler.fit_transform(features_k)
 
-        temp = pd.concat([temp, pd.DataFrame(features_k_scaled)], axis=1)
+        temp = pd.concat([temp, pd.DataFrame(features_k)], axis=1)
 
     temp.columns = list(np.arange(temp.shape[1]))
 
     return temp
 
+# 绘制相似度矩阵图
 def similarity_matrix(raw_data, columns_list=None):
     raw_data = raw_data.loc[:, [column for column in raw_data.columns if column in list(columns_list)]]
     corr_matrix = raw_data.corr()
@@ -64,9 +68,9 @@ def similarity_matrix(raw_data, columns_list=None):
 
 if __name__ == "__main__":
   path = ""
-  train = fread(path + "")
+  train = fread(os.path.join(path, ""))
   train = filter_approach_nonzero_features(train)
-  train = features_k_means(train)
-  similarity_matrix(train, [1, 2, 3, 4, 5])
-  train.to_csv(path + "", header=False, sep="\t", index=False)
+  # train = features_k_means(train)
+  # similarity_matrix(train, [1, 2, 3, 4, 5])
+  # train.to_csv(path + "", header=False, sep="\t", index=False)
 
