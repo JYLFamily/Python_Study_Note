@@ -13,6 +13,6 @@ def read_select_features(dir, file_name_list):
 
 if __name__ == "__main__":
     read_select_features("C:\\Users\\Dell\\Desktop\\week", \
-                         ["puhui_decision_existed_features.201701.json_features_taobao", \
-                          "puhui_decision_existed_features.201702.json_features_taobao", \
-                          "puhui_decision_existed_features.201703.json_features_taobao"])
+                         ["", \
+                          "", \
+                          ""])
