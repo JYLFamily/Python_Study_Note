@@ -93,5 +93,5 @@ def k_means(raw_data, K=5, dist_func=dist_eucl, choose_func=choose_centroid, fea
 
 
 if __name__ == "__main__":
-    train = fread("C:\\Users\\Dell\\Desktop\\week\\puhui_decision_existed_features.201701.json_features_taobao")
+    train = fread("C:\\Users\\Dell\\Desktop\\week\\")
     k_means(train, 5)
