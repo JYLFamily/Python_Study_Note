@@ -23,8 +23,12 @@ def read_log(key_words):
     #         line = f.readline()
     # finally:
     #     f.close()
-
+    """
+    :param key_words: 分析日志关键词 , 与日志每行第一个单词匹配
+    :return: [[], [], ……] 每一个列表元素存储一个统计量所有数据
+    """
     key_words = key_words
+    # [[]] * len(key_words) 不行 , 回导致 , 嵌套列表元素在内存中地址相同
     statistics = [[] for i in range(len(key_words))]
 
     with open("C:\\Users\\YL\\Desktop\\nohup.out", "r") as f:
@@ -34,10 +38,13 @@ def read_log(key_words):
                 continue
             # line 每行结束会带有换行符 , line.strip() 去掉每行结束的换行符
             line = line.strip()
+            line_list = line.split(sep=" ")
             for word, statistic in zip(key_words, statistics):
                 print(word)
-                if line.split(sep=" ")[0] == word:
-                    statistic.append([float(i) for i in line.split(sep=" ") if re.match(r'\d+', i)][0])
+                if line_list[0] == word:
+                    # 正则表达式 \d+ 匹配一个及一个以上数字
+                    # Python 中 \ 转义 , r'' 中不用考虑转义
+                    statistic.append([float(i) for i in line_list if re.match(r'\d+', i)][0])
             line = f.readline()
 
     return statistics
@@ -52,6 +59,7 @@ def show_log(log, key_words):
 
     plt.figure()
     log.plot()
+    # 必须有这行否则不能显示图片
     plt.show()
 
 
