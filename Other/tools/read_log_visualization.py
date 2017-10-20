@@ -1,6 +1,8 @@
 # encoding: utf-8
 import os
 import re
+from numpy import double
+import numpy as np
 import pandas as pd
 import matplotlib
 import matplotlib.pyplot as plt
@@ -31,7 +33,7 @@ def read_log(key_words):
     # [[]] * len(key_words) 不行 , 回导致 , 嵌套列表元素在内存中地址相同
     statistics = [[] for i in range(len(key_words))]
 
-    with open("C:\\Users\\YL\\Desktop\\nohup.out", "r") as f:
+    with open("C:\\Users\\Dell\\Desktop\\phone_dpc.log", "r") as f:
         line = f.readline()
         while line:
             if line == os.linesep:
@@ -40,17 +42,56 @@ def read_log(key_words):
             line = line.strip()
             line_list = line.split(sep=" ")
             for word, statistic in zip(key_words, statistics):
-                print(word)
                 if line_list[0] == word:
                     # 正则表达式 \d+ 匹配一个及一个以上数字
                     # Python 中 \ 转义 , r'' 中不用考虑转义
-                    statistic.append([float(i) for i in line_list if re.match(r'\d+', i)][0])
+                    statistic.append([double(re.findall(r'\d+\.{1}\d+', i)[0]) for i in line_list if re.match(r'.*\d.*', i)])
             line = f.readline()
 
     return statistics
 
 
-def show_log(log, key_words):
+def compute_display_relative_entropy(raw_data):
+    """
+    :param raw_data:
+    :return:
+    """
+    if type(raw_data) != pd.DataFrame:
+       raw_data = pd.DataFrame(raw_data)
+
+    kl_list = []
+    for i in np.arange(1, raw_data.shape[0]):
+        kl = 0
+        for j in np.arange(0, raw_data.shape[1]):
+            temp = 0
+            p = raw_data.iloc[i, j]
+            q = raw_data.iloc[i-1, j]
+
+            print(p)
+            print(q)
+
+            if p == 0 and q == 0:
+                temp = 0
+            elif p == 0 and q != 0:
+                temp = 0
+            elif p != 0 and q == 0:
+                temp = 10
+            else:
+                temp = p * np.log(p / q)
+            kl = kl + temp
+
+            print(kl)
+
+        kl_list.append(kl)
+
+    plt.figure()
+    pd.Series(kl_list).plot()
+    plt.show()
+
+
+
+
+def show_log(log, key_words = None):
     if len(log) > 1:
         log = pd.DataFrame(log).T
         log.columns = key_words
@@ -64,7 +105,12 @@ def show_log(log, key_words):
 
 
 if __name__ == "__main__":
-    log = read_log(["dpc", "cluster"])
-    print(log[0])
-    print(log[1])
-    show_log(log, ["dpc", "cluster"])
+    log = read_log(["distribution"])
+    log = log[0]
+    compute_display_relative_entropy(log)
+
+    # log_dataframe = pd.DataFrame(log)
+    # print(log_dataframe.head())
+    # print(log[0])
+    # print(log[1])
+    # show_log(log, ["dpc", "cluster"])
