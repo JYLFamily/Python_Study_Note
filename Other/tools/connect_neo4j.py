@@ -1,5 +1,5 @@
 # coding:utf-8
-import numpy as np
+import sys
 import pandas as pd
 from neo4j.v1 import GraphDatabase, basic_auth
 
@@ -9,7 +9,7 @@ session = driver.session()
 
 
 def load():
-    df = pd.read_csv("C:\\Users\\Dell\\Desktop\\output", sep="\t", header=None)
+    df = pd.read_csv(sys.argv[1], sep="\t", header=None)
     idno_list = []
     for apply_id_no in df.loc[:, 0]:
         idno_list.append(apply_id_no.split(sep=" ")[1])
@@ -21,13 +21,13 @@ def search_neo4j(variable):
     temp = 0
     print(variable[0])
     for i in variable[1:]:
-        cypher = "match " \
+        cypher = "MATCH" \
                  "(n1:user {idNo:'" + str(variable[0]) + "'})" \
-                   "-[r1:has_self_tel]-" \
-                 "(m1:phone)" \
+                   "-[r1]-" \
+                 "(n)" \
                    "-[r2]-" \
                  "(n2:user {idNo:'" + str(i) + "'}) " \
-                 "return count(*) as number"
+                 "RETURN COUNT(*) as number"
         result = session.run(cypher)
         for record in result:
             temp += record["number"]
@@ -37,7 +37,7 @@ def search_neo4j(variable):
 
 def loop_search(idno_list, offset):
     decision = [False] * offset
-    for i in np.arange(start=offset, stop=len(idno_list)):
+    for i in range(offset, len(idno_list)):
         temp = []
         for j in range(offset+1):
             temp.append(idno_list[i - j])
@@ -48,8 +48,10 @@ def loop_search(idno_list, offset):
 
 if __name__ == "__main__":
     idno_list = load()
-    decision = loop_search(idno_list, offset=3)
+    decision = loop_search(idno_list, offset=int(sys.argv[3]))
     decision = pd.Series(decision).to_frame()
-    df = pd.read_csv("C:\\Users\\Dell\\Desktop\\output", sep="\t", header=None)
+    df = pd.read_csv(sys.argv[1], sep="\t", header=None)
     df = pd.concat([df, decision], axis=1)
-    df.to_csv("C:\\Users\\Dell\\Desktop\\output_label", sep="\t", header=False, index=False)
+    df.columns = list(range(0, df.shape[1]))
+    df = df.loc[(df[df.shape[1] - 1] == True), list(range(df.shape[1] - 1))]
+    df.to_csv(sys.argv[2], sep="\t", header=False, index=False)
