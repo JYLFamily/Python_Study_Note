@@ -11,16 +11,15 @@ class JsonResolve(object):
         self.input_path = input_path
         self.output_path = output_path
         self.list_list = []
-        self.data_frame = None
+        self.data_frame = pd.DataFrame
 
     def json_to_list(self):
         with open(self.input_path, "r", encoding="UTF-8") as f:
             line = f.readline()
             while line:
+                line = line.strip()
                 self.list_list.append(list(json.loads(line)["data"][0].values()))
                 line = f.readline()
-                line = line.strip()
-                print(line)
 
     def list_to_frame(self):
         self.data_frame = pd.DataFrame(self.list_list)
