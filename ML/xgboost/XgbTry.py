@@ -73,4 +73,3 @@ if __name__ == "__main__":
     xgb_try.evaluate_train()
     xgb_try.evaluate_test()
     xgb_try.tree_viz()
-    
