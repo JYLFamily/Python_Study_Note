@@ -5,6 +5,7 @@ import pandas as pd
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import chi2
 from sklearn.linear_model import LogisticRegression
+from sklearn.feature_selection import SelectFromModel
 
 
 class FeatureSelectForLostRepair(object):
@@ -19,6 +20,8 @@ class FeatureSelectForLostRepair(object):
         self.__df_columns = None
         self.__continuous_variable = []
         self.__categorical_variable = []
+        self.__continuous_variable_df = None
+        self.__categorical_variable_df = None
 
     def load_df(self):
         self.__df = pd.read_csv(self.__input_path)
@@ -41,15 +44,19 @@ class FeatureSelectForLostRepair(object):
              [col for col in self.__df_label_categorical_variable if col != "label"]])
         y = self.__df_label_categorical_variable["label"]
 
-        print(X.columns[SelectKBest(chi2, k=5).fit(X, y).get_support()])
+        # 使用这种方式能够返回最佳的 k 个 , 但是最佳的这 k 个之间不是有序的
+        # print(X.columns[SelectKBest(chi2, k=5).fit(X, y).get_support()])
+        self.__continuous_variable_df = (pd.concat([pd.Series(X.columns.values).to_frame(),
+                                                    pd.Series(SelectKBest(chi2, k="all").fit(X, y).pvalues_).to_frame()],
+                                                   axis=1))
+        print(self.__continuous_variable_df)
 
     def select_continuous_variable(self):
         X = (self.__df_label_continuous_variable.loc[:,
              [col for col in self.__df_label_continuous_variable if col != "label"]])
         y = self.__df_label_continuous_variable["label"]
         model_lr = LogisticRegression(penalty='l1')
-        print(model_lr.fit(X, y).coef_)
-
+        model_select = SelectFromModel(model_lr, threshold=0)
 
 
 if __name__ == "__main__":

@@ -31,12 +31,11 @@ class FirstStep(object):
         self.__train, self.__test, self.__train_label, self.__test_label = (
             train_test_split(self.__X, self.__y, test_size=self.__test_size, random_state=self.__random_state))
 
-        print(self.__X.head())
-        print(self.__y.head())
-
     def fit(self):
-        self.__bst = XGBClassifier(objective='binary:logistic')
-        self.__bst.fit(self.__train, self.__train_label)
+        self.__bst = XGBClassifier(scale_pos_weight=2.64, objective='binary:logistic')
+        self.__bst.fit(self.__train
+                       , self.__train_label
+                       , eval_metric="auc")
 
     def predict(self):
         self.__test_preds = self.__bst.predict(self.__test)
