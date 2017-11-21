@@ -1,16 +1,14 @@
 # coding:utf-8
 
-import numpy as np
 import pandas as pd
 import matplotlib.pylab as plt
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.model_selection import train_test_split
-from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import roc_auc_score
 from sklearn.metrics import accuracy_score
 from matplotlib.pylab import rcParams
-rcParams['figure.figsize'] = 12, 4
+rcParams["figure.figsize"] = 12, 4
 
 
 class SecondStep(object):
