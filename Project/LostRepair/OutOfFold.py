@@ -6,7 +6,7 @@ from sklearn.model_selection import StratifiedKFold
 
 class OutOfFold(object):
 
-    def __init__(self, clf, train, train_label, test, cv=5, random_state=9):
+    def __init__(self, clf, train, train_label, test, cv=2, random_state=9):
         self.__clf = clf
         self.__train = train
         self.__train_label = train_label
@@ -41,8 +41,8 @@ class OutOfFold(object):
             self.__clf.train(self.__x_train, self.__y_train)
 
             self.__oof_train[test_index] = self.__clf.predict(self.__x_test)
-            self.__oof_test_skf[:, i] = self.__clf.predict(self.__x_test)
+            self.__oof_test_skf[:, i] = self.__clf.predict(self.__test).reshape((-1, ))
 
         self.__oof_test = self.__oof_test_skf.mean(axis=1)
 
-        return self.__oof_train, self.__oof_test
+        return self.__oof_train, self.__oof_test.reshape((-1, 1))

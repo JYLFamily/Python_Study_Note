@@ -32,7 +32,7 @@ class FirstStep(object):
             train_test_split(self.__X, self.__y, test_size=self.__test_size, random_state=self.__random_state))
 
     def fit(self):
-        self.__bst = XGBClassifier(scale_pos_weight=2.64, objective='binary:logistic')
+        self.__bst = XGBClassifier(objective="binary:logistic")
         self.__bst.fit(self.__train
                        , self.__train_label
                        , eval_metric="auc")
