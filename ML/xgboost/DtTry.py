@@ -1,16 +1,13 @@
 # coding:utf-8
 
-import pydotplus
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import GridSearchCV
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.tree import export_graphviz
 from sklearn.metrics import roc_auc_score
 from sklearn.metrics import accuracy_score
-from sklearn.externals.six import StringIO
 
 
 class DtTry(object):
@@ -63,12 +60,6 @@ class DtTry(object):
     def model_eval(self):
         print(roc_auc_score(self.__df_test_label, self.__y_prob))
         print(accuracy_score(self.__df_test_label, self.__y_prob))
-
-    # def model_viz(self):
-    #     self.__dot_data = StringIO()
-    #     export_graphviz(self.__model_dt, out_file=self.__dot_data)
-    #     graph = pydotplus.graph_from_dot_data(self.__dot_data.getvalue())
-    #     graph.write_png("D:\\Code\\tree.png")
 
 
 if __name__ == "__main__":

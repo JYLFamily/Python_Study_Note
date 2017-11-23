@@ -10,7 +10,7 @@ from sklearn.metrics import accuracy_score
 
 class FirstStep(object):
 
-    def __init__(self, input_path, sep=",", test_size=0.2, random_state=9):
+    def __init__(self, input_path, sep="\t", test_size=0.2, random_state=9):
         self.__input_path = input_path
         self.__sep = sep
         self.__test_size = test_size
@@ -26,8 +26,8 @@ class FirstStep(object):
         self.__test_predictions = None
 
     def set_train_test(self):
-        self.__X = pd.read_csv(self.__input_path, sep=self.__sep, usecols=list(range(1, 34)))
-        self.__y = pd.read_csv(self.__input_path, sep=self.__sep, usecols=[0])
+        self.__X = pd.read_csv(self.__input_path, sep=self.__sep, usecols=list(range(7, 36)))
+        self.__y = pd.read_csv(self.__input_path, sep=self.__sep, usecols=[5])
         self.__train, self.__test, self.__train_label, self.__test_label = (
             train_test_split(self.__X, self.__y, test_size=self.__test_size, random_state=self.__random_state))
 
@@ -48,7 +48,7 @@ class FirstStep(object):
 
 
 if __name__ == "__main__":
-    fs = FirstStep(input_path="C:\\Users\\Dell\\Desktop\\zytsl_robot.csv")
+    fs = FirstStep(input_path="C:\\Users\\Dell\\Desktop\\result.txt")
     fs.set_train_test()
     fs.fit()
     fs.predict()
