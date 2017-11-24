@@ -33,7 +33,7 @@ class ModelDataAgg(object):
             self.__train_oof[:, i] = value.reshape((-1, ))
         self.__train_all = np.hstack((self.__train, self.__train_oof))
 
-        return self.__train_oof
+        return self.__train_all
 
     def test_merge(self):
         for i, (key, value) in enumerate(self.__test_set.items()):
