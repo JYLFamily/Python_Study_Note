@@ -1,12 +1,11 @@
 # coding:utf-8
 
-from Project.LostRepair.RawDataSplit import RawDataSplit
-from Project.LostRepair.StackingAssistant import StackingAssistant
-from Project.LostRepair.XgbModel import XgbModel
-
+from Project.LostRepair.ThirdStep.RawDataSplit import RawDataSplit
+from Project.LostRepair.ThirdStep.StackingAssistant import StackingAssistant
+from Project.LostRepair.ThirdStep.XgbModel import XgbModel
 
 if __name__ == "__main__":
-    rds = RawDataSplit(input_path="C:\\Users\\Dell\\Desktop\\result.txt")
+    rds = RawDataSplit(input_path="C:\\Users\\Dell\\Desktop\\week\\features.csv")
     rds.set_train_test()
     train, train_label, test, test_label = rds.get_train_test()
     print("------ RawDataSplit complete ! ------")
@@ -20,4 +19,5 @@ if __name__ == "__main__":
     xgb.train()
     xgb.predict()
     xgb.evaluate()
+    xgb.evaluate_output()
     print("------ Model complete ! ------")

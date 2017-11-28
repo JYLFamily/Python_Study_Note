@@ -45,4 +45,4 @@ class XgbModel(object):
     def evaluate_output(self):
         self.__output = np.hstack((self.__test_label.reshape((-1, 1)), self.__test_preds.reshape((-1, 1))))
         print(self.__output.shape)
-        pd.DataFrame(self.__output, columns=["label", "proba"]).to_csv("C:\\Users\\Dell\\Desktop\\output2.csv")
+        pd.DataFrame(self.__output, columns=["label", "proba"]).to_csv("C:\\Users\\Dell\\Desktop\\output3.csv")

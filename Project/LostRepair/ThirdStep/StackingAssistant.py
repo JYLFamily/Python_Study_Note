@@ -1,15 +1,16 @@
 # coding:utf-8
 
+from Project.LostRepair.ThirdStep.ModelDataAgg import ModelDataAgg
+from Project.LostRepair.ThirdStep.OutOfFold import OutOfFold
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import ExtraTreeClassifier
-from sklearn.ensemble import AdaBoostClassifier
-from sklearn.ensemble import GradientBoostingClassifier
 from xgboost import XGBClassifier
-from sklearn.ensemble import RandomForestClassifier
-from Project.LostRepair.ModelAssistant import ModelAssistant
-from Project.LostRepair.OutOfFold import OutOfFold
-from Project.LostRepair.ModelDataAgg import ModelDataAgg
+
+from Project.LostRepair.ThirdStep.ModelAssistant import ModelAssistant
 
 
 class StackingAssistant(object):
