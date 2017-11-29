@@ -83,3 +83,4 @@ if __name__ == "__main__":
     fsflr.select_categorical_variable()
     fsflr.select_continuous_variable_l1()
     fsflr.select_continuous_variable_tree()
+
