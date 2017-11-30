@@ -6,6 +6,7 @@ import matplotlib.pylab as plt
 from xgboost import XGBClassifier
 from sklearn.metrics import roc_auc_score
 from sklearn.metrics import accuracy_score
+from sklearn.externals import joblib
 from matplotlib.pylab import rcParams
 rcParams["figure.figsize"] = 12, 4
 
@@ -43,6 +44,9 @@ class XgbModel(object):
         print("accuracy score : %.4f" % accuracy_score(self.__test_label, self.__test_predictions))
 
     def evaluate_output(self):
-        self.__output = np.hstack((self.__test_label.reshape((-1, 1)), self.__test_preds.reshape((-1, 1))))
+        self.__output = np.hstack((self.__test, self.__test_label.reshape((-1, 1)), self.__test_preds.reshape((-1, 1))))
         print(self.__output.shape)
-        pd.DataFrame(self.__output, columns=["label", "proba"]).to_csv("C:\\Users\\Dell\\Desktop\\output3.csv")
+        pd.DataFrame(self.__output).to_csv("C:\\Users\\Dell\\Desktop\\output.csv")
+
+    def xgbmodel_output(self):
+        joblib.dump(self.__bst, "C:\\Users\\Dell\\Desktop\\bst.pkl.z", compress=3)
