@@ -29,8 +29,8 @@ class StackingAssistant(object):
                                               random_state=self.__random_state)
         self.__et_estimator = ModelAssistant(clf=ExtraTreeClassifier, params=extratree_params,
                                              random_state=self.__random_state)
-        self.__ad_estimator = ModelAssistant(clf=AdaBoostClassifier, params=adaboost_params,
-                                             random_state=self.__random_state)
+        # self.__ad_estimator = ModelAssistant(clf=AdaBoostClassifier, params=adaboost_params,
+        #                                      random_state=self.__random_state)
         self.__gbdt_estimator = ModelAssistant(clf=GradientBoostingClassifier, params=gbdt_params,
                                                random_state=self.__random_state)
         self.__xgb_estimator = ModelAssistant(clf=XGBClassifier, params=xgboost_params,
@@ -50,9 +50,9 @@ class StackingAssistant(object):
         self.__et_train_oof = None
         self.__et_test_oof = None
         #
-        self.__ad_oof = None
-        self.__ad_train_oof = None
-        self.__ad_test_oof = None
+        # self.__ad_oof = None
+        # self.__ad_train_oof = None
+        # self.__ad_test_oof = None
         #
         self.__gbdt_oof = None
         self.__gbdt_train_oof = None
@@ -88,11 +88,11 @@ class StackingAssistant(object):
         self.__et_train_oof, self.__et_test_oof = self.__et_oof.get_oof()
         print("--- et ready ! ---")
 
-        self.__ad_oof = OutOfFold(clf=self.__ad_estimator, train=self.__train, train_label=self.__train_label,
-                                  test=self.__test, cv=self.__cv, random_state=self.__random_state)
-        self.__ad_oof.set_skf()
-        self.__ad_train_oof, self.__ad_test_oof = self.__ad_oof.get_oof()
-        print("--- ad ready ! ---")
+        # self.__ad_oof = OutOfFold(clf=self.__ad_estimator, train=self.__train, train_label=self.__train_label,
+        #                           test=self.__test, cv=self.__cv, random_state=self.__random_state)
+        # self.__ad_oof.set_skf()
+        # self.__ad_train_oof, self.__ad_test_oof = self.__ad_oof.get_oof()
+        # print("--- ad ready ! ---")
 
         self.__gbdt_oof = OutOfFold(clf=self.__gbdt_estimator, train=self.__train, train_label=self.__train_label,
                                     test=self.__test, cv=self.__cv, random_state=self.__random_state)
@@ -118,7 +118,7 @@ class StackingAssistant(object):
                             lr_train_oof=self.__lr_train_oof, lr_test_oof=self.__lr_test_oof,
                             knn_train_oof=self.__knn_train_oof, knn_test_oof=self.__knn_test_oof,
                             et_train_oof=self.__et_train_oof, et_test_oof=self.__et_test_oof,
-                            ad_train_oof=self.__ad_train_oof, ad_test_oof=self.__ad_test_oof,
+                            # ad_train_oof=self.__ad_train_oof, ad_test_oof=self.__ad_test_oof,
                             gbdt_train_oof=self.__gbdt_train_oof, gbdt_test_oof=self.__gbdt_test_oof,
                             xgb_train_oof=self.__xgb_train_oof, xgb_test_oof=self.__xgb_test_oof,
                             rf_train_oof=self.__rf_train_oof, rf_test_oof=self.__rf_test_oof))

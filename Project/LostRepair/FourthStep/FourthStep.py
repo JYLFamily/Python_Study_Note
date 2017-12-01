@@ -2,6 +2,7 @@
 
 import os
 import re
+import json
 import numpy as np
 from sklearn.externals import joblib
 
@@ -56,13 +57,11 @@ class FourthStep(object):
                                   self.__xgb_classifier])
 
     def stage_one_predict(self, raw_features):
-        if type(raw_features) != np.ndarray:
-            raise TypeError("Need Numpy Array Object")
-        else:
-            self.__raw_features = raw_features.reshape((1, -1))
+        self.__raw_features = list(json.loads(raw_features).values())
+        self.__raw_features = np.array(self.__raw_features).reshape((1, -1))
 
         for model in self.__model_list:
-            self.__model_features_list.append(model.predict_proba(self.__raw_features)[:, 1])
+            self.__model_features_list.append(model.predict_proba(self.__raw_features)[:, 1][0])
 
         print(self.__model_features_list)
         self.__model_features_array = np.array(self.__model_features_list).reshape((1, -1))
@@ -73,9 +72,16 @@ class FourthStep(object):
 
 
 if __name__ == "__main__":
+    features = ('{"f0":0, "f1":1, "f2":0, "f3":0, "f4":0,'
+                ' "f5":0, "f6":0, "f7":0, "f8":0, "f9":0,'
+                ' "f10":0, "f11":0, "f12":0, "f13":0, "f14":0,'
+                ' "f15":0, "f16":0, "f17":0, "f18":0, "f19":0,'
+                ' "f20":1, "f21":0, "f22":0, "f23":0, "f24":0,'
+                ' "f25":0, "f26":0, "f27":0, "f28":0, "f29":0, "f30":450}')
+
     fs = FourthStep("C:\\Users\\Dell\\Desktop")
     fs.set_estimators()
-    fs.stage_one_predict(np.array([0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                   0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 450]))
+    fs.stage_one_predict(features)
     print(fs.stage_two_predict())
+
 

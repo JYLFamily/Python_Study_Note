@@ -6,6 +6,7 @@ import matplotlib.pylab as plt
 from xgboost import XGBClassifier
 from sklearn.metrics import roc_auc_score
 from sklearn.metrics import accuracy_score
+from sklearn2pmml import PMMLPipeline
 from sklearn.externals import joblib
 from matplotlib.pylab import rcParams
 rcParams["figure.figsize"] = 12, 4
@@ -26,7 +27,8 @@ class XgbModel(object):
 
     def train(self):
         self.__bst = XGBClassifier(objective="binary:logistic")
-        self.__bst.fit(self.__train, self.__train_label, eval_metric="auc")
+        self.__bst = PMMLPipeline([("estimator", self.__bst)])
+        self.__bst.fit(self.__train, self.__train_label, estimator__eval_metric="auc")
 
     def predict(self):
         self.__test_preds = self.__bst.predict_proba(self.__test)[:, 1]
@@ -45,8 +47,7 @@ class XgbModel(object):
 
     def evaluate_output(self):
         self.__output = np.hstack((self.__test, self.__test_label.reshape((-1, 1)), self.__test_preds.reshape((-1, 1))))
-        print(self.__output.shape)
         pd.DataFrame(self.__output).to_csv("C:\\Users\\Dell\\Desktop\\output.csv")
 
     def xgbmodel_output(self):
-        joblib.dump(self.__bst, "C:\\Users\\Dell\\Desktop\\bst.pkl.z", compress=3)
+        joblib.dump(self.__bst, "C:\\Users\\Dell\\Desktop\\bstML.pkl.z", compress=True)
