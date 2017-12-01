@@ -15,6 +15,9 @@ class JoblibTry(object):
     def model_load(self):
         self.__model = joblib.load("C:\\Users\\Dell\\Desktop\\drt.pkl.z")
 
+    def model_other(self):
+        pass
+
 
 if __name__ == "__main__":
     jbt = JoblibTry()
