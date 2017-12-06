@@ -6,7 +6,6 @@ import json
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from sklearn.ensemble import AdaBoostClassifier
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
@@ -32,7 +31,7 @@ class SecondStep(object):
         self.__test_label = None
         self.__gradient_boosting_classifier = GradientBoostingClassifier()
         self.__random_forest_classifier = RandomForestClassifier()
-        self.__logistic_regression = LogisticRegression()
+        self.__logistic_regression = LogisticRegression(random_state=9)
         self.__k_neighbors_classifier = KNeighborsClassifier()
         self.__extra_tree_classifier = ExtraTreeClassifier()
         self.__xgb_classifier = XGBClassifier()
@@ -41,6 +40,7 @@ class SecondStep(object):
         self.__pmml_model_name = []
         self.__files = None
         self.__raw_features = raw_features
+        self.__estimator = None
 
     def train_test_split(self):
         self.__train, self.__test, self.__train_label, self.__test_label = (
@@ -64,12 +64,17 @@ class SecondStep(object):
             temp.fit(self.__train, self.__train_label)
             self.__pmml_model_list.append(temp)
 
+        print(self.__logistic_regression.fit(self.__train, self.__train_label).coef_)
+        print(self.__logistic_regression.fit(self.__train, self.__train_label).intercept_)
+
     def model_dump(self):
         self.__pmml_model_name.extend(["GBDTML", "RFML", "LRML", "KNNML", "ETML", "XGBML"])
 
         for pmml_model, model_name in zip(self.__pmml_model_list, self.__pmml_model_name):
-            joblib.dump(pmml_model,  os.path.join(os.path.dirname(self.__input_path), model_name + ".pkl.z"),
-                        compress=True)
+            # joblib.dump(pmml_model,  os.path.join(os.path.dirname(self.__input_path), model_name + ".pkl.z"),
+            #             compress=True)
+            sklearn2pmml(pmml_model,
+                         os.path.join(os.path.dirname(self.__input_path), model_name+".pmml"), with_repr=True)
 
     def model_load(self):
         self.__raw_features = list(json.loads(self.__raw_features).values())
@@ -77,9 +82,9 @@ class SecondStep(object):
 
         self.__files = os.listdir(os.path.dirname(self.__input_path))
         for file in self.__files:
-            if re.search(r"XGBML", file):
-                self.__gradient_boosting_classifier = joblib.load(os.path.join(os.path.dirname(self.__input_path), file))
-                print(self.__gradient_boosting_classifier.predict_proba(self.__raw_features)[:, 1])
+            if re.search(r"RFML", file):
+                self.__estimator = joblib.load(os.path.join(os.path.dirname(self.__input_path), file))
+                print(self.__estimator.predict_proba(self.__raw_features)[:, 1])
 
 
 if __name__ == "__main__":
@@ -88,15 +93,15 @@ if __name__ == "__main__":
     # ss.model_wrapper_fit()
     # ss.model_dump()
 
-    features = ('{"f0":0, "f1":0, "f2":0, "f3":1, "f4":1,'
-                ' "f5":1, "f6":0, "f7":0, "f8":0, "f9":0,'
+    features = ('{"f0":0, "f1":1, "f2":0, "f3":0, "f4":0,'
+                ' "f5":0, "f6":0, "f7":0, "f8":0, "f9":0,'
                 ' "f10":0, "f11":0, "f12":0, "f13":0, "f14":0,'
                 ' "f15":0, "f16":0, "f17":0, "f18":0, "f19":0,'
                 ' "f20":1, "f21":0, "f22":0, "f23":0, "f24":0,'
-                ' "f25":0, "f26":0, "f27":0, "f28":1, "f29":0, "f30":300}')
+                ' "f25":0, "f26":0, "f27":0, "f28":0, "f29":0, "f30":450}')
 
     ss = SecondStep("C:\\Users\\Dell\\Desktop\\features_all.csv", 0.2, 9, features)
     ss.train_test_split()
     ss.model_wrapper_fit()
-    ss.model_dump()
-    ss.model_load()
+    # ss.model_dump()
+    # ss.model_load()

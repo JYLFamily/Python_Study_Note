@@ -1,0 +1,6 @@
+2017-12-06 16:34:45,518 - __main__ - WARNING - This is warning message
+2017-12-06 16:34:45,518 - __main__ - ERROR - This is error message
+2017-12-06 16:34:45,518 - __main__ - CRITICAL - This is critical message
+2017-12-06 16:48:11,419 - __main__ - WARNING - This is warning message
+2017-12-06 16:48:11,419 - __main__ - ERROR - This is error message
+2017-12-06 16:48:11,419 - __main__ - CRITICAL - This is critical message

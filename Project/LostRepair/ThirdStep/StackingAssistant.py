@@ -116,7 +116,7 @@ class StackingAssistant(object):
         mda = (ModelDataAgg(self.__train, self.__test,
                             self.__lr_train_oof.shape[0], self.__lr_test_oof.shape[0],
                             lr_train_oof=self.__lr_train_oof, lr_test_oof=self.__lr_test_oof,
-                            knn_train_oof=self.__knn_train_oof, knn_test_oof=self.__knn_test_oof,
+                            # knn_train_oof=self.__knn_train_oof, knn_test_oof=self.__knn_test_oof,
                             et_train_oof=self.__et_train_oof, et_test_oof=self.__et_test_oof,
                             # ad_train_oof=self.__ad_train_oof, ad_test_oof=self.__ad_test_oof,
                             gbdt_train_oof=self.__gbdt_train_oof, gbdt_test_oof=self.__gbdt_test_oof,
