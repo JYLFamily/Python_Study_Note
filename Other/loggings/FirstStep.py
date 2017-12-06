@@ -13,15 +13,15 @@ class FirstStep(object):
         self.__console_handler = None
 
     def use_logging_with_control(self):
-        # 设置写文件 handler 默认 mode="a"
-        self.__file_handler = logging.FileHandler("my.log", mode="a")
-        self.__file_handler.setLevel(logging.INFO)
-        self.__file_handler.setFormatter(self.__formatter)
-
         # 设置写控制台 handler
         self.__console_handler = logging.StreamHandler()
         self.__console_handler.setLevel(logging.DEBUG)
         self.__console_handler.setFormatter(self.__formatter)
+
+        # 设置写文件 handler 默认 mode="a"
+        self.__file_handler = logging.FileHandler("my.log", mode="a")
+        self.__file_handler.setLevel(logging.INFO)
+        self.__file_handler.setFormatter(self.__formatter)
 
         self.__logger.addHandler(self.__file_handler)
         self.__logger.addHandler(self.__console_handler)

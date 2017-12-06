@@ -67,7 +67,7 @@ class FourthStep(object):
 
     def set_logger(self):
         self.__file_handler = logging.FileHandler("my.log", mode="a")
-        self.__file_handler.setLevel(logging.INFO)
+        self.__file_handler.setLevel(logging.ERROR)
         self.__file_handler.setFormatter(self.__formatter)
 
         self.__console_handler = logging.StreamHandler()
@@ -106,7 +106,7 @@ class FourthStep(object):
                                   self.__k_neighbors_classifier,
                                   self.__extra_tree_classifier,
                                   self.__xgb_classifier])
-        self.__logger.info("set estimators complete.")
+        self.__logger.warning("set estimators complete")
 
     def return_predict(self, raw_features):
         self.__raw_features = json.loads(raw_features, encoding="bytes")
@@ -119,7 +119,7 @@ class FourthStep(object):
             self.__raw_features_array[phone_number] = np.array(raw_feature_temp).reshape((1, -1))
             raw_feature_temp = []
         model_feature_temp = []
-        self.__logger.info("raw_features_array complete.")
+        self.__logger.warning("raw_features_array complete")
 
         for phone_number, features_array in self.__raw_features_array.items():
             for model in self.__model_list:
@@ -127,14 +127,14 @@ class FourthStep(object):
             self.__model_features_array[phone_number] = np.hstack((features_array,
                                                                    np.array(model_feature_temp).reshape((1, -1))))
             model_feature_temp = []
-        self.__logger.info("model_features_array complete.")
+        self.__logger.warning("model_features_array complete")
 
         for phone_number, features_array in self.__model_features_array.items():
             # numpy.float32 与 np.float64 is not JSON serializable
             self.__return_proba[phone_number] = float(self.__bst.predict_proba(features_array)[:, 1][0])
 
         self.__return_proba = json.dumps(self.__return_proba)
-        self.__logger.info("return_proba complete.")
+        self.__logger.warning("return_proba complete")
 
         return self.__return_proba
 
