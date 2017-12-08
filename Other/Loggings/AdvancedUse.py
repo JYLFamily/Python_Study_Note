@@ -3,11 +3,12 @@
 import logging
 
 
-class FirstStep(object):
+class AdvanceUse(object):
 
     def __init__(self):
         # 设置 logger 名称
         self.__logger = logging.getLogger(__name__)
+        self.__logger.setLevel(logging.DEBUG)
         self.__formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
         self.__file_handler = None
         self.__console_handler = None
@@ -15,7 +16,7 @@ class FirstStep(object):
     def use_logging_with_control(self):
         # 设置写控制台 handler
         self.__console_handler = logging.StreamHandler()
-        self.__console_handler.setLevel(logging.DEBUG)
+        self.__console_handler.setLevel(logging.INFO)
         self.__console_handler.setFormatter(self.__formatter)
 
         # 设置写文件 handler 默认 mode="a"

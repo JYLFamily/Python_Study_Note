@@ -1,4 +1,130 @@
-2017-12-06 17:01:03,185 - __main__ - ERROR - set estimators complete
-2017-12-06 17:01:03,186 - __main__ - ERROR - raw_features_array complete
-2017-12-06 17:01:03,211 - __main__ - ERROR - model_features_array complete
-2017-12-06 17:01:03,212 - __main__ - ERROR - return_proba complete
+INFO:root:³ÌÐòÆô¶¯£¡£¡¼àÌý¶Ë¿ÚÎª£º7777
+INFO:root:³ÌÐòÆô¶¯£¡£¡¼àÌý¶Ë¿ÚÎª£º7777
+INFO:root:raw_features_array complete
+INFO:root:model_features_array complete
+INFO:root:return_proba complete
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.167) 3628.45ms
+INFO:root:³ÌÐòÆô¶¯£¡£¡¼àÌý¶Ë¿ÚÎª£º7777
+ERROR:root:name 'return_proba' is not defined
+Traceback (most recent call last):
+  File "C:/Users/Dell/PycharmProjects/LostRepairModelV1/Server.py", line 29, in post
+    print(return_proba)
+NameError: name 'return_proba' is not defined
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.167) 1414.35ms
+INFO:root:³ÌÐòÆô¶¯£¡£¡¼àÌý¶Ë¿ÚÎª£º7777
+INFO:root:³ÌÐòÆô¶¯£¡£¡¼àÌý¶Ë¿ÚÎª£º7777
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 1229.37ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 471.13ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 498.25ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 353.32ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 406.72ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 451.35ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 477.93ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 484.66ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 911.10ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 435.34ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 632.86ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 549.06ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 488.08ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 393.59ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 464.99ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 422.40ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 503.17ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 499.43ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 591.61ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 426.58ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 412.95ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 476.96ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 389.81ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 598.25ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 479.44ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 419.67ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 415.94ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 596.24ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 390.98ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 344.03ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 495.74ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 491.89ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 799.21ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 490.39ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 423.52ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 437.90ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 387.36ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 499.13ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 381.82ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 419.94ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 367.72ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 386.17ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 584.15ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 470.39ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 429.95ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 367.56ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 390.72ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 417.32ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 499.98ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 474.50ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 420.52ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 568.42ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 479.52ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 348.92ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 350.55ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 431.88ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 1078.10ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 527.63ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 394.16ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 355.42ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 385.06ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 535.73ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 394.61ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 467.15ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 496.57ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 546.04ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 364.89ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 353.05ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 618.71ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 372.43ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 368.76ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 441.22ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 483.41ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 352.54ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 519.88ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 388.14ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 454.36ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 399.03ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 372.81ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 389.00ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 571.54ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 389.83ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 369.97ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 458.60ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 408.27ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 460.32ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 493.47ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 923.03ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 456.11ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 416.23ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 438.77ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 361.94ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 358.76ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 357.43ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 352.17ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 664.52ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 363.01ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 347.04ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 540.16ms
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 507.40ms
+INFO:root:³ÌÐòÆô¶¯£¡£¡¼àÌý¶Ë¿ÚÎª£º7777
+INFO:root:³ÌÐòÆô¶¯£¡£¡¼àÌý¶Ë¿ÚÎª£º7777
+INFO:root:estimators set complete
+INFO:root:return_proba complete
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 693.78ms
+INFO:root:estimators set complete
+INFO:root:return_proba complete
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 368.62ms
+INFO:root:³ÌÐòÆô¶¯£¡£¡¼àÌý¶Ë¿ÚÎª£º7777
+INFO:root:estimators set complete
+INFO:root:return_proba complete
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 3578.58ms
+INFO:root:estimators set complete
+INFO:root:return_proba complete
+INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 3395.19ms

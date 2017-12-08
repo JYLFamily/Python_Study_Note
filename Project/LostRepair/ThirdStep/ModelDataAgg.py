@@ -27,6 +27,8 @@ class ModelDataAgg(object):
                 self.__train_set[key] = value
             else:
                 self.__test_set[key] = value
+        print(self.__train_set)
+        print(self.__test_set)
 
     def train_merge(self):
         for i, (key, value) in enumerate(self.__train_set.items()):
