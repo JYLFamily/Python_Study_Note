@@ -9,7 +9,7 @@ class AdvanceUse(object):
         # 设置 logger 名称
         self.__logger = logging.getLogger(__name__)
         self.__logger.setLevel(logging.DEBUG)
-        self.__formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+        self.__formatter = logging.Formatter("[%(asctime)s]-[%(name)s]-[%(levelname)s]-[%(message)s]")
         self.__file_handler = None
         self.__console_handler = None
 
@@ -20,7 +20,7 @@ class AdvanceUse(object):
         self.__console_handler.setFormatter(self.__formatter)
 
         # 设置写文件 handler 默认 mode="a"
-        self.__file_handler = logging.FileHandler("my.log", mode="a")
+        self.__file_handler = logging.FileHandler("AdvanceUse.log", mode="a")
         self.__file_handler.setLevel(logging.INFO)
         self.__file_handler.setFormatter(self.__formatter)
 
@@ -36,6 +36,6 @@ class AdvanceUse(object):
 
 
 if __name__ == "__main__":
-    fs = FirstStep()
-    fs.use_logging_with_control()
-    fs.use_logging_output_console()
+    au = AdvanceUse()
+    au.use_logging_with_control()
+    au.use_logging_output_console()

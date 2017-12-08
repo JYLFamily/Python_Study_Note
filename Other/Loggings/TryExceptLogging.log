@@ -1,0 +1,5 @@
+[2017-12-08 19:01:49,125]-[root]-[ERROR]-[division by zero]
+Traceback (most recent call last):
+  File "D:/Code/Python/Python_Study_Note/Other/Loggings/TryExceptLogging.py", line 17, in test_try_except
+    print(10 / self.__number)
+ZeroDivisionError: division by zero
