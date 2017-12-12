@@ -5,7 +5,7 @@ from Project.LostRepair.ThirdStep.StackingAssistant import StackingAssistant
 from Project.LostRepair.ThirdStep.XgbModel import XgbModel
 
 if __name__ == "__main__":
-    rds = RawDataSplit(input_path="C:\\Users\\Dell\\Desktop\\features_all.csv")
+    rds = RawDataSplit(input_path="D:\\Project\\LostRepair\\yunyingshang\\all.csv")
     rds.set_train_test()
     train, train_label, test, test_label = rds.get_train_test()
     print("------ RawDataSplit complete ! ------")
