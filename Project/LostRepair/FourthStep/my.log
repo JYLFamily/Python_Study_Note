@@ -128,3 +128,90 @@ INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 3578.58ms
 INFO:root:estimators set complete
 INFO:root:return_proba complete
 INFO:tornado.access:200 POST /evaluateScore (172.16.104.121) 3395.19ms
+INFO:root:³ÌÐòÆô¶¯£¡£¡¼àÌý¶Ë¿ÚÎª£º7777
+ERROR:tornado.application:Uncaught exception POST /evaluateScore (172.16.104.161)
+HTTPServerRequest(protocol='http', host='172.16.107.116:7777', method='POST', uri='/evaluateScore', version='HTTP/1.1', remote_ip='172.16.104.161', headers={'Content-Type': 'application/json,charset=UTF-8', 'Cache-Control': 'no-cache', 'Pragma': 'no-cache', 'User-Agent': 'Java/1.8.0_45', 'Host': '172.16.107.116:7777', 'Accept': 'text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2', 'Connection': 'keep-alive', 'Content-Length': '15809'})
+Traceback (most recent call last):
+  File "C:\Users\Dell\Anaconda3\lib\site-packages\tornado\web.py", line 1511, in _execute
+    result = yield result
+  File "C:\Users\Dell\Anaconda3\lib\site-packages\tornado\gen.py", line 1055, in run
+    value = future.result()
+  File "C:\Users\Dell\Anaconda3\lib\concurrent\futures\_base.py", line 398, in result
+    return self.__get_result()
+  File "C:\Users\Dell\Anaconda3\lib\concurrent\futures\_base.py", line 357, in __get_result
+    raise self._exception
+  File "C:\Users\Dell\Anaconda3\lib\concurrent\futures\thread.py", line 55, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "D:/Code/Python/Python_Study_Note/Project/LostRepair/FourthStep/Server.py", line 25, in post
+    model = ModelPlus(sys.argv[1])
+IndexError: list index out of range
+ERROR:tornado.access:500 POST /evaluateScore (172.16.104.161) 3015.21ms
+INFO:root:³ÌÐòÆô¶¯£¡£¡¼àÌý¶Ë¿ÚÎª£º7777
+ERROR:tornado.application:Uncaught exception POST /evaluateScore (172.16.104.161)
+HTTPServerRequest(protocol='http', host='172.16.107.116:7777', method='POST', uri='/evaluateScore', version='HTTP/1.1', remote_ip='172.16.104.161', headers={'Cache-Control': 'no-cache', 'Postman-Token': '00460aaa-d104-49a4-b548-cb151e56b237', 'Content-Type': 'application/json,charset=UTF-8', 'User-Agent': 'PostmanRuntime/6.4.1', 'Accept': '*/*', 'Host': '172.16.107.116:7777', 'Accept-Encoding': 'gzip, deflate', 'Content-Length': '0', 'Connection': 'keep-alive'})
+Traceback (most recent call last):
+  File "C:\Users\Dell\Anaconda3\lib\site-packages\tornado\web.py", line 1511, in _execute
+    result = yield result
+  File "C:\Users\Dell\Anaconda3\lib\site-packages\tornado\gen.py", line 1055, in run
+    value = future.result()
+  File "C:\Users\Dell\Anaconda3\lib\concurrent\futures\_base.py", line 398, in result
+    return self.__get_result()
+  File "C:\Users\Dell\Anaconda3\lib\concurrent\futures\_base.py", line 357, in __get_result
+    raise self._exception
+  File "C:\Users\Dell\Anaconda3\lib\concurrent\futures\thread.py", line 55, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "D:/Code/Python/Python_Study_Note/Project/LostRepair/FourthStep/Server.py", line 25, in post
+    model = ModelPlus(sys.argv[1])
+IndexError: list index out of range
+ERROR:tornado.access:500 POST /evaluateScore (172.16.104.161) 14.04ms
+ERROR:tornado.application:Uncaught exception POST /evaluateScore (172.16.104.161)
+HTTPServerRequest(protocol='http', host='172.16.107.116:7777', method='POST', uri='/evaluateScore', version='HTTP/1.1', remote_ip='172.16.104.161', headers={'Cache-Control': 'no-cache', 'Postman-Token': '39c0a7fd-bcef-4b8e-984a-b184f370ac22', 'Content-Type': 'application/json,charset=UTF-8', 'User-Agent': 'PostmanRuntime/6.4.1', 'Accept': '*/*', 'Host': '172.16.107.116:7777', 'Accept-Encoding': 'gzip, deflate', 'Content-Length': '0', 'Connection': 'keep-alive'})
+Traceback (most recent call last):
+  File "C:\Users\Dell\Anaconda3\lib\site-packages\tornado\web.py", line 1511, in _execute
+    result = yield result
+  File "C:\Users\Dell\Anaconda3\lib\site-packages\tornado\gen.py", line 1055, in run
+    value = future.result()
+  File "C:\Users\Dell\Anaconda3\lib\concurrent\futures\_base.py", line 398, in result
+    return self.__get_result()
+  File "C:\Users\Dell\Anaconda3\lib\concurrent\futures\_base.py", line 357, in __get_result
+    raise self._exception
+  File "C:\Users\Dell\Anaconda3\lib\concurrent\futures\thread.py", line 55, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "D:/Code/Python/Python_Study_Note/Project/LostRepair/FourthStep/Server.py", line 25, in post
+    model = ModelPlus(sys.argv[1])
+IndexError: list index out of range
+ERROR:tornado.access:500 POST /evaluateScore (172.16.104.161) 6.02ms
+ERROR:tornado.application:Uncaught exception POST /evaluateScore (172.16.104.161)
+HTTPServerRequest(protocol='http', host='172.16.107.116:7777', method='POST', uri='/evaluateScore', version='HTTP/1.1', remote_ip='172.16.104.161', headers={'Cache-Control': 'no-cache', 'Postman-Token': 'c922040f-2c61-495b-b9bf-562265bec363', 'Content-Type': 'application/json,charset=UTF-8', 'User-Agent': 'PostmanRuntime/6.4.1', 'Accept': '*/*', 'Host': '172.16.107.116:7777', 'Accept-Encoding': 'gzip, deflate', 'Content-Length': '245026', 'Connection': 'keep-alive'})
+Traceback (most recent call last):
+  File "C:\Users\Dell\Anaconda3\lib\site-packages\tornado\web.py", line 1511, in _execute
+    result = yield result
+  File "C:\Users\Dell\Anaconda3\lib\site-packages\tornado\gen.py", line 1055, in run
+    value = future.result()
+  File "C:\Users\Dell\Anaconda3\lib\concurrent\futures\_base.py", line 398, in result
+    return self.__get_result()
+  File "C:\Users\Dell\Anaconda3\lib\concurrent\futures\_base.py", line 357, in __get_result
+    raise self._exception
+  File "C:\Users\Dell\Anaconda3\lib\concurrent\futures\thread.py", line 55, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "D:/Code/Python/Python_Study_Note/Project/LostRepair/FourthStep/Server.py", line 25, in post
+    model = ModelPlus(sys.argv[1])
+IndexError: list index out of range
+ERROR:tornado.access:500 POST /evaluateScore (172.16.104.161) 214.54ms
+ERROR:tornado.application:Uncaught exception POST /evaluateScore (172.16.104.161)
+HTTPServerRequest(protocol='http', host='172.16.107.116:7777', method='POST', uri='/evaluateScore', version='HTTP/1.1', remote_ip='172.16.104.161', headers={'Content-Type': 'application/json,charset=UTF-8', 'Cache-Control': 'no-cache', 'Pragma': 'no-cache', 'User-Agent': 'Java/1.8.0_45', 'Host': '172.16.107.116:7777', 'Accept': 'text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2', 'Connection': 'keep-alive', 'Content-Length': '15809'})
+Traceback (most recent call last):
+  File "C:\Users\Dell\Anaconda3\lib\site-packages\tornado\web.py", line 1511, in _execute
+    result = yield result
+  File "C:\Users\Dell\Anaconda3\lib\site-packages\tornado\gen.py", line 1055, in run
+    value = future.result()
+  File "C:\Users\Dell\Anaconda3\lib\concurrent\futures\_base.py", line 398, in result
+    return self.__get_result()
+  File "C:\Users\Dell\Anaconda3\lib\concurrent\futures\_base.py", line 357, in __get_result
+    raise self._exception
+  File "C:\Users\Dell\Anaconda3\lib\concurrent\futures\thread.py", line 55, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "D:/Code/Python/Python_Study_Note/Project/LostRepair/FourthStep/Server.py", line 25, in post
+    model = ModelPlus(sys.argv[1])
+IndexError: list index out of range
+ERROR:tornado.access:500 POST /evaluateScore (172.16.104.161) 17.05ms
