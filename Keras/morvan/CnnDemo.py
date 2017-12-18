@@ -95,9 +95,6 @@ class CnnDemo(object):
         print("test loss: ", loss)
         print("test accuracy: ", accuracy)
 
-    def model_output(self):
-        self.__model.get_layer("Dense_1").output
-
 
 if __name__ == "__main__":
     cd = CnnDemo()
@@ -106,4 +103,3 @@ if __name__ == "__main__":
     cd.choose_loss_optimizing()
     cd.model_train()
     cd.model_evaluate()
-    cd.model_output()

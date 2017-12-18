@@ -21,7 +21,6 @@ class Server(BaseHandler):
 
     @run_on_executor()
     def post(self):
-        time.sleep(3)
         model = ModelPlus(sys.argv[1])
         model.set_estimators()
         try:
