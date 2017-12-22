@@ -1,5 +1,6 @@
 # coding:utf-8
 
+import os
 import logging
 import numpy as np
 import pandas as pd
@@ -13,6 +14,7 @@ from keras.models import Sequential
 from keras.layers.core import Dense, Dropout
 from xgboost import XGBClassifier
 from sklearn.metrics import roc_auc_score
+from sklearn.externals import joblib
 
 
 class Main(object):
@@ -22,8 +24,9 @@ class Main(object):
                             filemode="w",
                             format="[%(asctime)s]-[%(name)s]-[%(lineno)d]-[%(levelname)s]-[%(message)s]",
                             level=logging.DEBUG)
-        self.__X = pd.read_csv(input_path, usecols=list(range(1, 4))).values
-        self.__y = pd.read_csv(input_path, usecols=[0]).values.ravel()
+        self.__input_path = input_path
+        self.__X = pd.read_csv(self.__input_path, usecols=list(range(1, 4))).values
+        self.__y = pd.read_csv(self.__input_path, usecols=[0]).values.ravel()
         self.__test_size, self.__random_state = test_size, random_state
         self.__cv = cv
         self.__train, self.__train_label, self.__test, self.__test_label = None, None, None, None
@@ -91,6 +94,7 @@ class Main(object):
                 print(roc_auc_score(self.__test_label, model.predict_proba(self.__test_all, batch_size=100)))
             else:
                 model.fit(self.__train_all, self.__train_label)
+                joblib.dump(model, os.path.join(os.path.dirname(self.__input_path), "bst.pkl.z"), compress=3)
                 print(roc_auc_score(self.__test_label, model.predict_proba(self.__test_all)[:, 1]))
             logging.info("stage two compelet.")
         except Exception as e:

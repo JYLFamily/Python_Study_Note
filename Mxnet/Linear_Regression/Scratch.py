@@ -15,11 +15,11 @@ class Scratch(object):
         self.__true_b = None
         self.__X = None
         self.__y = None
-
-        # function set 待估计参数
         self.__w = None
         self.__b = None
         self.__params = None
+
+        # function set 待估计参数
 
         # goodness of function loss function
 
@@ -29,7 +29,7 @@ class Scratch(object):
         # goodness of function optimizer function
         self.__learning_rate = None
 
-        # pick the best function 模型训练
+        # pick the best function
         self.__epochs = None
         self.__batch_X = None
         self.__batch_y = None
