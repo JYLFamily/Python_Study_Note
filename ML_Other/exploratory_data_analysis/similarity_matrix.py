@@ -28,7 +28,8 @@ def filter_approach_nonzero_features(raw_data, threshold=0.0001):
     selector.fit(features)
 
     return_raw_data = pd.concat([primary_key, \
-                                 pd.DataFrame(selector.fit_transform(features), columns=features_columns[selector.get_support()])], axis=1)
+                                 pd.DataFrame(selector.fit_transform(features),
+                                              columns=features_columns[selector.get_support()])], axis=1)
 
     return return_raw_data
 
