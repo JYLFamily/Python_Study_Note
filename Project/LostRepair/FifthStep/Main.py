@@ -11,7 +11,9 @@ from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from keras.models import Sequential
-from keras.layers.core import Dense, Dropout
+from keras.layers.core import Dense, Activation
+from keras.optimizers import RMSprop
+from keras import backend as K
 from xgboost import XGBClassifier
 from sklearn.metrics import roc_auc_score
 from sklearn.externals import joblib
@@ -93,8 +95,33 @@ class Main(object):
                 model.fit(self.__train_all, self.__train_label, batch_size=100, epochs=4)
                 print(roc_auc_score(self.__test_label, model.predict_proba(self.__test_all, batch_size=100)))
             else:
+                keras_model = Sequential([
+                    # 添加 "层" Dense(output_dim, input_dim)
+                    Dense(200, input_dim=7),
+                    # 添加 "激活函数"
+                    Activation("relu"),
+                    Dense(200),
+                    Activation("relu"),
+                    Dense(200),
+                    Activation("relu"),
+                    Dense(200),
+                    Activation("relu"),
+                    Dense(1),
+                    Activation("sigmoid"),
+                ])
+                rmsprop = RMSprop(lr=0.001, rho=0.9, epsilon=1e-08, decay=0.0)
+                # loss 与 optimizer 是什么意思 ? 损失函数与优化方法 ? 那我觉得写反了
+                # 刚才就是写反了
+                keras_model.compile(loss="binary_crossentropy",
+                                    optimizer=rmsprop,
+                                    metrics=["accuracy"])
+                keras_model.fit(self.__train_all, self.__train_label, epochs=5, batch_size=320)
+                intermediate_tensor_function = K.function([keras_model.layers[0].input],
+                                                          [keras_model.layers[6].output])
+                self.__train_all = intermediate_tensor_function([self.__train_all])[0]
+                self.__test_all = intermediate_tensor_function([self.__test_all])[0]
                 model.fit(self.__train_all, self.__train_label)
-                joblib.dump(model, os.path.join(os.path.dirname(self.__input_path), "bst.pkl.z"), compress=3)
+                # joblib.dump(model, os.path.join(os.path.dirname(self.__input_path), "bst.pkl.z"), compress=3)
                 print(roc_auc_score(self.__test_label, model.predict_proba(self.__test_all)[:, 1]))
             logging.info("stage two compelet.")
         except Exception as e:

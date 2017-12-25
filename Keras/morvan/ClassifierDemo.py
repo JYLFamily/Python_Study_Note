@@ -7,6 +7,7 @@ from keras.models import Sequential
 from keras.layers import Dense
 from keras.layers import Activation
 from keras.optimizers import RMSprop
+from keras import backend as K
 np.random.seed(9)
 
 
@@ -38,6 +39,8 @@ class ClassifierDemo(object):
             Dense(32, input_dim=784),
             # 添加 "激活函数"
             Activation("relu"),
+            Dense(32),
+            Activation("relu"),
             Dense(10),
             Activation("softmax"),
         ])
@@ -63,6 +66,14 @@ class ClassifierDemo(object):
         print("test loss: ", loss)
         print("test accuracy: ", accuracy)
 
+    def model_output(self):
+        intermediate_tensor_function = K.function([self.__model.layers[0].input],
+                                                  [self.__model.layers[3].output])
+        intermediate_tensor = intermediate_tensor_function([self.__test])[0]
+        print(type(intermediate_tensor_function))
+        print(intermediate_tensor.shape)
+        print(intermediate_tensor)
+
 
 if __name__ == "__main__":
     cd = ClassifierDemo()
@@ -70,4 +81,5 @@ if __name__ == "__main__":
     cd.build_neural_network()
     cd.choose_loss_optimizing()
     cd.model_train()
-    cd.model_test()
+    # cd.model_test()
+    cd.model_output()
