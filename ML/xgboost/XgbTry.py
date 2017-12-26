@@ -37,7 +37,6 @@ class XgbTry(object):
         print("Test nrow : " + str(self.__test.num_row()))
         print("Test ncol : " + str(self.__test.num_col()))
 
-
     def trian_model(self):
         self.__bst = xgb.train(self.__param, self.__train, self.__num_round)
 

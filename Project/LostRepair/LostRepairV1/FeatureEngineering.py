@@ -9,77 +9,83 @@ from sklearn.model_selection import train_test_split
 
 
 class FeatureEngineering(object):
+    @staticmethod
+    def __set_numerical_and_categorical_cloumns(train, test):
+        columns = train.columns
+        numerical_cloumns = []
+        categorical_columns = []
 
-    def __init__(self, *, train, train_label, test, test_label):
-        self.__train = train
-        self.__train_label = train_label
-        self.__test = test
-        self.__test_label = test_label
-
-        self.__columns = []
-        self.__numerical_cloumns = []
-        self.__categorical_columns = []
-
-        self.__train_numerical = None
-        self.__train_categorical = None
-        self.__test_numerical = None
-        self.__test_categorical = None
-
-        self.__train_tree = None
-        self.__test_tree = None
-        self.__train_linear = None
-        self.__test_linear = None
-
-    def __set_numerical_and_categorical_cloumns(self):
-        self.__columns = self.__train.columns
-        for col in self.__columns:
-            if len(np.unique(self.__train[col])) > 15:
-                self.__numerical_cloumns.append(col)
+        for col in columns:
+            if len(np.unique(train[col])) > 15:
+                numerical_cloumns.append(col)
             else:
-                self.__categorical_columns.append(col)
+                categorical_columns.append(col)
 
-        self.__train_numerical = self.__train[self.__numerical_cloumns]
-        self.__train_categorical = self.__train[self.__categorical_columns]
-        self.__test_numerical = self.__test[self.__numerical_cloumns]
-        self.__test_categorical = self.__test[self.__categorical_columns]
+        train_numerical = train[numerical_cloumns]
+        train_categorical = train[categorical_columns]
+        test_numerical = test[numerical_cloumns]
+        test_categorical = test[categorical_columns]
 
-    def tree_model_feature_engineering(self):
-        self.__set_numerical_and_categorical_cloumns()
+        return train_numerical, train_categorical, test_numerical, test_categorical
 
-        encoder = LabelEncoder().fit(self.__train_categorical)
-        self.__train_categorical = (encoder.transform(self.__train_categorical)
-                                    .reshape((-1, self.__train_categorical.shape[1])))
-        self.__test_categorical = (encoder.transform(self.__test_categorical)
-                                   .reshape((-1, self.__test_categorical.shape[1])))
+    @staticmethod
+    def tree_model_feature_engineering(*, train, test):
+        train_numerical, train_categorical, test_numerical, test_categorical = (
+            FeatureEngineering.__set_numerical_and_categorical_cloumns(train, test))
 
-        self.__train_tree = np.hstack((self.__train_categorical, self.__train_numerical))
-        self.__test_tree = np.hstack((self.__test_categorical, self.__test_numerical))
+        encoder = LabelEncoder().fit(train_categorical)
+        train_categorical = (encoder.transform(train_categorical)
+                             .reshape((-1, train_categorical.shape[1])))
+        test_categorical = (encoder.transform(test_categorical)
+                                   .reshape((-1, test_categorical.shape[1])))
 
-        return self.__train_tree, self.__test_tree
+        train_tree = np.hstack((train_categorical, train_numerical))
+        test_tree = np.hstack((test_categorical, test_numerical))
 
-    def linear_model_feature_engineering(self):
-        self.__set_numerical_and_categorical_cloumns()
+        return train_tree, test_tree
 
-        encoder = OneHotEncoder(sparse=False).fit(self.__train_categorical)
-        self.__train_categorical = encoder.transform(self.__train_categorical)
-        self.__test_categorical = encoder.transform(self.__test_categorical)
+    @staticmethod
+    def linear_model_feature_engineering(*, train, test):
+        train_numerical, train_categorical, test_numerical, test_categorical = (
+            FeatureEngineering.__set_numerical_and_categorical_cloumns(train, test))
 
-        scaler = StandardScaler().fit(self.__train_numerical)
-        self.__train_numerical = scaler.transform(self.__train_numerical)
-        self.__test_numerical = scaler.transform(self.__test_numerical)
+        # 类别变量一般是字符格式, 需要先使用 LabelEncoder
+        encoder_le = LabelEncoder().fit(train_categorical)
+        train_categorical = (encoder_le.transform(train_categorical).reshape((-1, train_categorical.shape[1])))
+        test_categorical = (encoder_le.transform(test_categorical).reshape((-1, test_categorical.shape[1])))
 
-        self.__train_linear = np.hstack((self.__train_categorical, self.__train_numerical))
-        self.__test_linear = np.hstack((self.__test_categorical, self.__test_numerical))
+        # sparse=False 否则是稀疏格式
+        encoder_oht = OneHotEncoder(sparse=False).fit(train_categorical)
+        train_categorical = encoder_oht.transform(train_categorical)
+        test_categorical = encoder_oht.transform(test_categorical)
 
-        return self.__train_linear, self.__test_linear
+        scaler = StandardScaler().fit(train_numerical)
+        train_numerical = scaler.transform(train_numerical)
+        test_numerical = scaler.transform(test_numerical)
+
+        train_linear = np.hstack((train_categorical, train_numerical))
+        test_linear = np.hstack((test_categorical, test_numerical))
+
+        return train_linear, test_linear
+
+    @staticmethod
+    def net_model_feature_engineering(*, train, test):
+        train_net, test_net = (
+            FeatureEngineering.linear_model_feature_engineering(train=train,
+                                                                test=test)
+        )
+
+        return train_net, test_net
 
 
 if __name__ == "__main__":
-    X = pd.read_csv("C:\\Users\\Dell\\Desktop\\model2.csv", usecols=list(range(1, 4)))
-    y = pd.read_csv("C:\\Users\\Dell\\Desktop\\model2.csv", usecols=[0])
-    train, test, train_label, test_label = (
+    X = pd.read_csv("C:\\Users\\Dell\\Desktop\\model.txt", sep="\t", usecols=list(range(1, 4)))
+    y = pd.read_csv("C:\\Users\\Dell\\Desktop\\model.txt", sep="\t", usecols=[0])
+
+    train_X, test_X, train_y, test_y = (
         train_test_split(X, y, test_size=0.2, random_state=9))
 
-    fe = FeatureEngineering(train=train, train_label=train_label, test=test, test_label=test_label)
-    fe.linear_model_feature_engineering()
-    fe.tree_model_feature_engineering()
+    train_X, test_X = (
+         FeatureEngineering.net_model_feature_engineering(train=train_X,
+                                                          test=test_X)
+    )

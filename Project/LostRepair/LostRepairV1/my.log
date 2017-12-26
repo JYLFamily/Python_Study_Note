@@ -1,0 +1,6 @@
+[2017-12-26 17:29:05,528]-[root]-[51]-[INFO]-[train test split compelet.]
+[2017-12-26 17:29:05,687]-[root]-[58]-[INFO]-[linear model feature engineering complete]
+[2017-12-26 17:29:05,827]-[root]-[64]-[INFO]-[tree model feature engineering complete]
+[2017-12-26 17:29:05,972]-[root]-[70]-[INFO]-[net model feature engineering complete]
+[2017-12-26 17:29:08,402]-[root]-[77]-[INFO]-[nn generate feature complete]
+[2017-12-26 17:29:21,899]-[root]-[134]-[INFO]-[stage one compelet.]
