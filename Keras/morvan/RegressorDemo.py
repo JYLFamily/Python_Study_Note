@@ -26,7 +26,7 @@ class RegressorDemo(object):
 
     def model_train(self):
         for step in range(0, 301):
-            cost = self.__model.train_on_batch(self.__train, self.__train_label)
+            cost = self.__model.fit(self.__train, self.__train_label)
             if step % 100 == 0:
                 print("train cost: ", cost)
 
