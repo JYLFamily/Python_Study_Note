@@ -100,7 +100,9 @@ class Main(object):
                 return oof_test
 
             self.__oof_train_tree = (
-                np.hstack(tuple(map(get_oof_train, tree_model_list, [self.__train_tree] * len(tree_model_list),
+                np.hstack(tuple(map(get_oof_train,
+                                    tree_model_list,
+                                    [self.__train_tree] * len(tree_model_list),
                                     [self.__train_label] * len(tree_model_list))))
             )
             self.__oof_test_tree = (
@@ -110,7 +112,9 @@ class Main(object):
                                     [self.__test_tree] * len(tree_model_list))))
             )
             self.__oof_train_linear = (
-                np.hstack(tuple(map(get_oof_train, linear_model_list, [self.__train_linear] * len(linear_model_list),
+                np.hstack(tuple(map(get_oof_train,
+                                    linear_model_list,
+                                    [self.__train_linear] * len(linear_model_list),
                                     [self.__train_label] * len(linear_model_list))))
             )
             self.__oof_test_linear = (
@@ -128,8 +132,6 @@ class Main(object):
                                          self.__test_output_layer,
                                          self.__oof_test_tree,
                                          self.__oof_test_linear))
-
-            print(self.__train_all.shape)
 
             logging.info("stage one compelet.")
         except Exception as e:
