@@ -43,15 +43,19 @@ class Scratch(object):
         self.__train = gluon.data.vision.FashionMNIST(train=True, transform=transform)
         self.__test = gluon.data.vision.FashionMNIST(train=False, transform=transform)
 
-        self.__w1 = nd.random_normal(shape=(self.__num_input, self.__num_hidden))
+        # loc scale 分布的均值与方差 , 方差越小越容易收敛
+        self.__w1 = nd.random_normal(shape=(self.__num_input, self.__num_hidden), scale=0.01)
         self.__b1 = nd.random_normal(shape=(1, self.__num_hidden))
-        self.__w2 = nd.random_normal(shape=(self.__num_hidden, self.__num_output))
+        self.__w2 = nd.random_normal(shape=(self.__num_hidden, self.__num_output), scale=0.01)
         self.__b2 = nd.random_normal(shape=(1, self.__num_output))
         self.__params = [self.__w1, self.__b1, self.__w2, self.__b2]
 
     def function_set_loss_function(self):
-        def relu(batch_X):
-            return nd.maximum(batch_X, 0)
+        # relu = lambda x: nd.maximum(x, 0)
+
+        def relu(x):
+            return nd.maximum(x, 0)
+
         hidden_layer_before_act = nd.dot(self.__batch_X.reshape((-1, self.__num_input)), self.__w1) + self.__b1
         hidden_layer_after_act = relu(hidden_layer_before_act)
         output_layer_before_act = nd.dot(hidden_layer_after_act, self.__w2) + self.__b2
@@ -68,7 +72,6 @@ class Scratch(object):
     def goodness_of_function_optimizer_function(self):
         for param in self.__params:
             param[:] = param - self.__learning_rate / self.__batch_size * param.grad
-
 
     def train_model(self):
         for param in self.__params:
@@ -87,7 +90,7 @@ class Scratch(object):
 
 
 if __name__ == "__main__":
-    s = Scratch(num_hidden=256, batch_size=256, learning_rate=0.1, epochs=5)
+    s = Scratch(num_hidden=256, batch_size=256, learning_rate=0.5, epochs=5)
     s.data_prepare()
     s.goodness_of_function_optimizer_data()
     s.train_model()

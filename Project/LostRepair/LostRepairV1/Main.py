@@ -14,7 +14,6 @@ from Project.LostRepair.LostRepairV1.FeatureEngineering import FeatureEngineerin
 from Project.LostRepair.LostRepairV1.NnGenerateFeature import NnGenerateFeature
 
 
-
 class Main(object):
 
     def __init__(self, *, input_path, sep, header, test_size, random_state, cv):
