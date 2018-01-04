@@ -36,6 +36,7 @@ class Scratch(object):
         self.__epochs = epochs
         self.__batch_X = None
         self.__batch_y = None
+        self.__batch_y_hat = None
 
     def data_prepare(self):
         def transform(data, label):
@@ -50,7 +51,7 @@ class Scratch(object):
         self.__b2 = nd.random_normal(shape=(1, self.__num_output))
         self.__params = [self.__w1, self.__b1, self.__w2, self.__b2]
 
-    def function_set_loss_function(self):
+    def function_set(self):
         # relu = lambda x: nd.maximum(x, 0)
 
         def relu(x):
@@ -59,9 +60,13 @@ class Scratch(object):
         hidden_layer_before_act = nd.dot(self.__batch_X.reshape((-1, self.__num_input)), self.__w1) + self.__b1
         hidden_layer_after_act = relu(hidden_layer_before_act)
         output_layer_before_act = nd.dot(hidden_layer_after_act, self.__w2) + self.__b2
+
+        return output_layer_before_act
+
+    def goodness_of_function_loss_function(self):
         loss = gluon.loss.SoftmaxCELoss()
 
-        return loss(output_layer_before_act, self.__batch_y)
+        return loss(self.__batch_y_hat, self.__batch_y)
 
     def goodness_of_function_optimizer_data(self):
         self.__train_data_iter = gluon.data.DataLoader(
@@ -81,7 +86,8 @@ class Scratch(object):
             total_loss = 0
             for self.__batch_X, self.__batch_y in self.__train_data_iter:
                 with autograd.record():
-                    loss = self.function_set_loss_function()
+                    self.__batch_y_hat = self.function_set()
+                    loss = self.goodness_of_function_loss_function()
                 loss.backward()
                 self.goodness_of_function_optimizer_function()
                 total_loss += nd.mean(loss).asscalar()

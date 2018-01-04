@@ -23,8 +23,9 @@ class Scratch(object):
         self.__y = None
         self.__y_train, self.__y_test = None, None
 
-        # function set & goodness of function loss function
-        self.__batch_yhat = None
+        # function set
+
+        # goodness of function loss function
         self.__lamda = lamda
 
         # goodness of function optimizer data
@@ -37,6 +38,7 @@ class Scratch(object):
         self.__epochs = epochs
         self.__batch_X = None
         self.__batch_y = None
+        self.__batch_y_hat = None
 
     def data_prepare(self):
         self.__X = nd.random_normal(shape=(self.__num_train + self.__num_test, self.__num_inputs))
@@ -46,17 +48,19 @@ class Scratch(object):
         self.__X_train, self.__X_test = self.__X[:self.__num_train, :], self.__X[self.__num_train:, :]
         self.__y_train, self.__y_test = self.__y[:self.__num_train], self.__y[self.__num_train:]
 
-    # 模型仍然是 Xw + b 但是通过 Xw + b + L2 得到 w 与 b
-    def function_set_goodness_of_function_loss_function(self):
+    # 模型是 Xw + b
+    def function_set(self):
+        return nd.dot(self.__batch_X, self.__w) + self.__b
+
+    # loss是 Xw + b + L2
+    def goodness_of_function_loss_function(self):
         def square_loss(yhat, y):
             return (yhat - y.reshape(yhat.shape)) ** 2 / 2
 
         def l2_penalty():
             return ((self.__w**2).sum() + self.__b**2) / 2
 
-        self.__batch_yhat = nd.dot(self.__batch_X, self.__w) + self.__b
-
-        return square_loss(self.__batch_yhat, self.__batch_y) + self.__lamda * l2_penalty()
+        return square_loss(self.__batch_y_hat, self.__batch_y) + self.__lamda * l2_penalty()
 
     def train_iter(self):
         idx = list(range(self.__num_train))
@@ -78,7 +82,8 @@ class Scratch(object):
             mean_test_loss = 0
             for self.__batch_X, self.__batch_y in self.train_iter():
                 with autograd.record():
-                    train_loss = self.function_set_goodness_of_function_loss_function()
+                    self.__batch_y_hat = self.function_set()
+                    train_loss = self.goodness_of_function_loss_function()
                 train_loss.backward()
                 self.goodness_of_function_optimizer_function()
 

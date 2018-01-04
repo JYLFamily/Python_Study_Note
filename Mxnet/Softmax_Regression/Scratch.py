@@ -22,6 +22,9 @@ class Scratch(object):
         # function set
 
         # goodness of function loss function
+        self.__batch_y_hat_exp = None
+        self.__batch_y_hat_partition = None
+        self.__batch_y_hat_exp_divided_partition = None
 
         # goodness of function optimizer data
         self.__batch_size = batch_size
@@ -50,14 +53,16 @@ class Scratch(object):
         self.__params = [self.__w, self.__b]
 
     def function_set(self):
-        z = nd.dot(self.__batch_X.reshape((-1, self.__num_input)), self.__w) + self.__b
-        exp_z = nd.exp(z)
-        partition = exp_z.sum(axis=1, keepdims=True)
-
-        return exp_z / partition
+        return nd.dot(self.__batch_X.reshape((-1, self.__num_input)), self.__w) + self.__b
 
     def goodness_of_function_loss_function(self):
-        return - nd.log(nd.pick(self.__batch_y_hat, self.__batch_y))
+        # 取指数使得所有值 > 0
+        self.__batch_y_hat_exp = nd.exp(self.__batch_y_hat)
+        # 求 partition 用于归一化概率
+        self.__batch_y_hat_partition = self.__batch_y_hat_exp.sum(axis=1, keepdims=True)
+        self.__batch_y_hat_exp_divided_partition = self.__batch_y_hat_exp / self.__batch_y_hat_partition
+
+        return - nd.log(nd.pick(self.__batch_y_hat_exp_divided_partition, self.__batch_y))
 
     def goodness_of_function_optimizer_data(self):
         self.__train_data_iter = gluon.data.DataLoader(

@@ -52,7 +52,7 @@ class Scratch(object):
         return nd.dot(self.__batch_X, self.__w) + self.__b
 
     def goodness_of_function_loss_function(self):
-        return (self.__batch_y - self.__batch_y_hat) ** 2
+        return (self.__batch_y_hat - self.__batch_y) ** 2
 
     def goodness_of_function_optimizer_data(self):
         self.__batch_size = 100
@@ -65,7 +65,7 @@ class Scratch(object):
     def goodness_of_function_optimizer_function(self):
         self.__learning_rate = 0.001
         for param in self.__params:
-            param[:] = param - self.__learning_rate * param.grad
+            param[:] = param - self.__learning_rate / self.__batch_size * param.grad
 
     def train_model(self):
         for param in self.__params:
