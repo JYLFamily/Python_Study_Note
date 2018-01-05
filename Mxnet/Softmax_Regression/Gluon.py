@@ -25,8 +25,8 @@ class Gluon(object):
         self.__test_data_iter = None
 
         # goodness of function optimizer function
-        self.__learning_rate = learning_rate
         self.__trainer = None
+        self.__learning_rate = learning_rate
 
         # pick the best function
         self.__epochs = epochs

@@ -3,11 +3,12 @@
 import random
 from mxnet import ndarray as nd
 from mxnet import autograd
+from mxnet import gluon
 
 
-class Scratch(object):
+class Gluon(object):
 
-    def __init__(self, *, num_train, num_test, num_inputs, learning_rate, epochs, lamda):
+    def __init__(self, *, num_train, num_test, num_inputs, learning_rate, epochs, weight_decay):
         # data prepare
         self.__num_train = num_train
         self.__num_test = num_test
@@ -24,21 +25,24 @@ class Scratch(object):
         self.__y_train, self.__y_test = None, None
 
         # function set
+        self.__net = None
 
         # goodness of function loss function
-        self.__lamda = lamda
+        self.__square_loss = None
 
         # goodness of function optimizer data
         self.__batch_size = 1
 
         # goodness of function optimizer function
         self.__learning_rate = learning_rate
+        self.__weight_decay = weight_decay
+        self.__trainer = None
 
         # pick the best function
         self.__epochs = epochs
         self.__batch_X = None
         self.__batch_y = None
-        self.__batch_y_hat = None
+        self.__batch_yhat = None
 
     def data_prepare(self):
         self.__X = nd.random_normal(shape=(self.__num_train + self.__num_test, self.__num_inputs))
@@ -48,19 +52,14 @@ class Scratch(object):
         self.__X_train, self.__X_test = self.__X[:self.__num_train, :], self.__X[self.__num_train:, :]
         self.__y_train, self.__y_test = self.__y[:self.__num_train], self.__y[self.__num_train:]
 
-    # 模型是 Xw + b
     def function_set(self):
-        return nd.dot(self.__batch_X, self.__w) + self.__b
+        self.__net = gluon.nn.Sequential()
+        with self.__net.name_scope():
+            self.__net.add(gluon.nn.Dense(1))
+        self.__net.initialize()
 
-    # loss是 Xw + b + L2
     def goodness_of_function_loss_function(self):
-        def square_loss(yhat, y):
-            return (yhat - y.reshape(yhat.shape)) ** 2 / 2
-
-        def l2_penalty():
-            return ((self.__w**2).sum() + self.__b**2) / 2
-
-        return square_loss(self.__batch_y_hat, self.__batch_y) + self.__lamda * l2_penalty()
+        self.__square_loss = gluon.loss.L2Loss()
 
     def train_iter(self):
         idx = list(range(self.__num_train))
@@ -70,8 +69,8 @@ class Scratch(object):
             yield self.__X_train.take(j), self.__y_train.take(j)
 
     def goodness_of_function_optimizer_function(self):
-        for param in self.__params:
-            param[:] = param - self.__learning_rate / self.__batch_size * param.grad
+        self.__trainer = gluon.Trainer(self.__net.collect_params(), "sgd", {
+            "learning_rate": self.__learning_rate, "wd": self.__weight_decay})
 
     def train_model(self):
         for param in self.__params:
@@ -79,26 +78,21 @@ class Scratch(object):
 
         for e in range(self.__epochs):
             mean_train_loss = 0
-            mean_test_loss = 0
             for self.__batch_X, self.__batch_y in self.train_iter():
                 with autograd.record():
-                    self.__batch_y_hat = self.function_set()
-                    train_loss = self.goodness_of_function_loss_function()
+                     self.__batch_yhat = self.__net(self.__batch_X)
+                     train_loss = self.__square_loss(self.__batch_yhat, self.__batch_y)
                 train_loss.backward()
-                self.goodness_of_function_optimizer_function()
+                self.__trainer.step(self.__batch_size)
 
                 mean_train_loss += nd.mean(train_loss).asscalar()
-
-                test_y_hat = nd.dot(self.__X_test, self.__w) + self.__b
-                test_loss = ((test_y_hat - self.__y_test) ** 2 / 2 +
-                              self.__lamda * ((self.__w**2).sum() + self.__b**2) / 2)
-                mean_test_loss += nd.mean(test_loss).asscalar()
-
             print("Epoch %d, train average loss: %f" % (e, mean_train_loss / self.__num_train))
-            print("Epoch %d, test  average loss: %f" % (e, mean_test_loss / self.__num_test))
 
 
 if __name__ == "__main__":
-    s = Scratch(num_train=5, num_test=100, num_inputs=20, learning_rate=0.1, epochs=10, lamda=0)
-    s.data_prepare()
-    s.train_model()
+    g = Gluon(num_train=5, num_test=100, num_inputs=20, learning_rate=0.1, epochs=10, weight_decay=0)
+    g.data_prepare()
+    g.function_set()
+    g.goodness_of_function_loss_function()
+    g.goodness_of_function_optimizer_function()
+    g.train_model()
