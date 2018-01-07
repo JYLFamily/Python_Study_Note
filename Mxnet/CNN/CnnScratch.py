@@ -15,12 +15,13 @@ class CnnScratch(object):
         # data prepare
         self.__train = None
         self.__test = None
-
         ## Conv
         self.__W1, self.__b1, self.__W2, self.__b2 = [None for _ in range(4)]
         ## Dense
         self.__W3, self.__b3, self.__W4, self.__b4 = [None for _ in range(4)]
         self.__params = None
+
+        # function set
 
         # goodness of function loss function
 
