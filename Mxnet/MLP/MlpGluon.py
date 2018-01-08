@@ -5,7 +5,7 @@ from mxnet import autograd
 from mxnet import gluon
 
 
-class CnnGluon(object):
+class MlpGluon(object):
 
     def __init__(self, *, batch_size, learning_rate, epochs):
         # data prepare
@@ -43,14 +43,9 @@ class CnnGluon(object):
     def function_set(self):
         self.__net = gluon.nn.Sequential()
         with self.__net.name_scope():
-            self.__net.add(
-                gluon.nn.Conv2D(channels=20, kernel_size=5, activation="relu"),
-                gluon.nn.MaxPool2D(pool_size=2, strides=2),
-                gluon.nn.Conv2D(channels=50, kernel_size=3, activation="relu"),
-                gluon.nn.MaxPool2D(pool_size=2, strides=2),
-                gluon.nn.Flatten(),
-                gluon.nn.Dense(128, activation="relu"),
-                gluon.nn.Dense(10))
+            self.__net.add(gluon.nn.Flatten())
+            self.__net.add(gluon.nn.Dense(256, activation="relu"))
+            self.__net.add(gluon.nn.Dense(10))
         self.__net.initialize()
 
     def goodness_of_function_loss_function(self):
@@ -69,10 +64,7 @@ class CnnGluon(object):
         for e in range(self.__epochs):
             total_loss = 0.
             for self.__batch_X, self.__batch_y in self.__train_data_iter:
-                # self.__batch_X (batch_size, height, width, channels)
-                # self.__batch_X (batch_size, channels, height, width) 才能够使用
-                self.__batch_X = self.__batch_X.reshape((-1, 1, 28, 28))
-                self.__batch_y = self.__batch_y.reshape((-1, 1))
+
                 with autograd.record():
                     self.__batch_y_hat = self.__net(self.__batch_X)
                     loss = self.__softmax_cross_entropy(self.__batch_y_hat, self.__batch_y)
@@ -87,10 +79,10 @@ class CnnGluon(object):
             print(self.__net(self.__batch_X).argmax(axis=1))
 
 if __name__ == "__main__":
-    cg = CnnGluon(batch_size=256, learning_rate=0.1, epochs=5)
-    cg.data_prepare()
-    cg.function_set()
-    cg.goodness_of_function_loss_function()
-    cg.goodness_of_function_optimizer_data()
-    cg.goodness_of_function_optimizer_function()
-    cg.train_model()
+    mg = MlpGluon(batch_size=256, learning_rate=0.1, epochs=5)
+    mg.data_prepare()
+    mg.function_set()
+    mg.goodness_of_function_loss_function()
+    mg.goodness_of_function_optimizer_data()
+    mg.goodness_of_function_optimizer_function()
+    mg.train_model()

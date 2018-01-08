@@ -1,23 +1,30 @@
 # coding:utf-8
 
+from mxnet import gluon
 from mxnet import ndarray as nd
 from mxnet import autograd
-from mxnet import gluon
 
 
-class Gluon(object):
+class SoftmaxScratch(object):
 
     def __init__(self, *, batch_size, learning_rate, epochs):
         # data prepare
         # 原始数据包含 X, y
+        self.__num_output = 10
+        self.__num_input = 784
         self.__train = None
         self.__test = None
 
+        self.__w = None
+        self.__b = None
+        self.__params = None
+
         # function set
-        self.__net = None
 
         # goodness of function loss function
-        self.__softmax_cross_entropy = None
+        self.__batch_y_hat_exp = None
+        self.__batch_y_hat_partition = None
+        self.__batch_y_hat_exp_divided_partition = None
 
         # goodness of function optimizer data
         self.__batch_size = batch_size
@@ -26,7 +33,6 @@ class Gluon(object):
 
         # goodness of function optimizer function
         self.__learning_rate = learning_rate
-        self.__trainer = None
 
         # pick the best function
         self.__epochs = epochs
@@ -40,16 +46,23 @@ class Gluon(object):
         self.__train = gluon.data.vision.FashionMNIST(train=True, transform=transform)
         self.__test = gluon.data.vision.FashionMNIST(train=False, transform=transform)
 
+        # 10 分类问题相当于有 10 个 Logistics Regression self.__num_output
+        # 每个 Logistics Regression 接收 784 个特征 self.__num_input
+        self.__w = nd.random_normal(shape=(self.__num_input, self.__num_output))
+        self.__b = nd.random_normal(shape=(1, self.__num_output))
+        self.__params = [self.__w, self.__b]
+
     def function_set(self):
-        self.__net = gluon.nn.Sequential()
-        with self.__net.name_scope():
-            self.__net.add(gluon.nn.Flatten())
-            self.__net.add(gluon.nn.Dense(256, activation="relu"))
-            self.__net.add(gluon.nn.Dense(10))
-        self.__net.initialize()
+        return nd.dot(self.__batch_X.reshape((-1, self.__num_input)), self.__w) + self.__b
 
     def goodness_of_function_loss_function(self):
-        self.__softmax_cross_entropy = gluon.loss.SoftmaxCrossEntropyLoss()
+        # 取指数使得所有值 > 0
+        self.__batch_y_hat_exp = nd.exp(self.__batch_y_hat)
+        # 求 partition 用于归一化概率
+        self.__batch_y_hat_partition = self.__batch_y_hat_exp.sum(axis=1, keepdims=True)
+        self.__batch_y_hat_exp_divided_partition = self.__batch_y_hat_exp / self.__batch_y_hat_partition
+
+        return - nd.log(nd.pick(self.__batch_y_hat_exp_divided_partition, self.__batch_y))
 
     def goodness_of_function_optimizer_data(self):
         self.__train_data_iter = gluon.data.DataLoader(
@@ -58,32 +71,28 @@ class Gluon(object):
             self.__test, self.__batch_size, shuffle=False)
 
     def goodness_of_function_optimizer_function(self):
-        self.__trainer = gluon.Trainer(self.__net.collect_params(), "sgd", {"learning_rate": self.__learning_rate})
+        for param in self.__params:
+            param[:] = param - self.__learning_rate / self.__batch_size * param.grad
 
     def train_model(self):
+        for param in self.__params:
+            param.attach_grad()
+
         for e in range(self.__epochs):
-            total_loss = 0.
+            total_loss = 0
             for self.__batch_X, self.__batch_y in self.__train_data_iter:
-
                 with autograd.record():
-                    self.__batch_y_hat = self.__net(self.__batch_X)
-                    loss = self.__softmax_cross_entropy(self.__batch_y_hat, self.__batch_y)
+                    self.__batch_y_hat = self.function_set()
+                    loss = self.goodness_of_function_loss_function()
                 loss.backward()
-                self.__trainer.step(self.__batch_size)
-
+                self.goodness_of_function_optimizer_function()
                 total_loss += nd.mean(loss).asscalar()
+
             print("Epoch %d, average loss: %f" % (e, total_loss / len(self.__train_data_iter)))
 
-    def test_model(self):
-        for self.__batch_X, self.__batch_y in self.__test_data_iter:
-            print(self.__net(self.__batch_X).argmax(axis=1))
 
 if __name__ == "__main__":
-    g = Gluon(batch_size=256, learning_rate=0.1, epochs=5)
-    g.data_prepare()
-    g.function_set()
-    g.goodness_of_function_loss_function()
-    g.goodness_of_function_optimizer_data()
-    g.goodness_of_function_optimizer_function()
-    g.train_model()
-    # g.test_model()
+    ss = SoftmaxScratch(batch_size=256, learning_rate=0.1, epochs=5)
+    ss.data_prepare()
+    ss.goodness_of_function_optimizer_data()
+    ss.train_model()

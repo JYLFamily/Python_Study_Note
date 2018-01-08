@@ -8,9 +8,9 @@ from mxnet import init
 from mxnet import gluon
 
 
-class AlexNetGluon(object):
+class VggNetGluon(object):
 
-    def __init__(self, *, batch_size, learning_rate, epochs):
+    def __init__(self, *, architecture, batch_size, learning_rate, epochs):
         # set ctx
         self.__ctx = None
 
@@ -21,6 +21,7 @@ class AlexNetGluon(object):
 
         # function set
         self.__net = None
+        self.__architecture = architecture
 
         # goodness of function loss function
         self.__softmax_cross_entropy = None
@@ -43,7 +44,7 @@ class AlexNetGluon(object):
     def set_ctx(self):
         try:
             self.__ctx = mx.gpu()
-            _ = nd.zeros(shape=(1,), ctx=self.__ctx)
+            _ = nd.zeros(shape=(1, ), ctx=self.__ctx)
         except:
             self.__ctx = mx.cpu()
 
@@ -60,36 +61,33 @@ class AlexNetGluon(object):
         self.__test = gluon.data.vision.FashionMNIST(train=False, transform=transform_mnist)
 
     def function_set(self):
+        def vgg_block(num_convs, num_filters):
+            out = gluon.nn.Sequential()
+            for _ in range(num_convs):
+                out.add(
+                    gluon.nn.Conv2D(channels=num_filters, kernel_size=3,
+                              padding=1, activation="relu")
+                )
+            out.add(gluon.nn.MaxPool2D(pool_size=2, strides=2))
+            return out
+
+        def vgg_stack(architecture):
+            out = gluon.nn.Sequential()
+            for (num_convs, num_filters) in architecture:
+                out.add(vgg_block(num_convs, num_filters))
+            return out
+
         self.__net = gluon.nn.Sequential()
         with self.__net.name_scope():
             self.__net.add(
-                # 第一阶段
-                gluon.nn.Conv2D(channels=96, kernel_size=11,
-                          strides=4, activation='relu'),
-                gluon.nn.MaxPool2D(pool_size=3, strides=2),
-                # 第二阶段
-                gluon.nn.Conv2D(channels=256, kernel_size=5,
-                          padding=2, activation='relu'),
-                gluon.nn.MaxPool2D(pool_size=3, strides=2),
-                # 第三阶段
-                gluon.nn.Conv2D(channels=384, kernel_size=3,
-                          padding=1, activation='relu'),
-                gluon.nn.Conv2D(channels=384, kernel_size=3,
-                          padding=1, activation='relu'),
-                gluon.nn.Conv2D(channels=256, kernel_size=3,
-                          padding=1, activation='relu'),
-                gluon.nn.MaxPool2D(pool_size=3, strides=2),
-                # 第四阶段
+                vgg_stack(self.__architecture),
                 gluon.nn.Flatten(),
                 gluon.nn.Dense(4096, activation="relu"),
                 gluon.nn.Dropout(.5),
-                # 第五阶段
                 gluon.nn.Dense(4096, activation="relu"),
                 gluon.nn.Dropout(.5),
-                # 第六阶段
-                gluon.nn.Dense(10)
-            )
-            self.__net.initialize(init=init.Xavier(), ctx=self.__ctx)
+                gluon.nn.Dense(10))
+        self.__net.initialize(init=init.Xavier(), ctx=self.__ctx)
 
     def goodness_of_function_loss_function(self):
         self.__softmax_cross_entropy = gluon.loss.SoftmaxCrossEntropyLoss()
@@ -139,11 +137,12 @@ class AlexNetGluon(object):
 
 
 if __name__ == "__main__":
-    ang = AlexNetGluon(batch_size=64, learning_rate=0.01, epochs=5)
-    ang.set_ctx()
-    ang.data_prepare()
-    ang.function_set()
-    ang.goodness_of_function_loss_function()
-    ang.goodness_of_function_optimizer_data()
-    ang.goodness_of_function_optimizer_function()
-    ang.pick_the_best_function()
+    vng = VggNetGluon(
+     architecture=((1, 64), (1, 128), (2, 256), (2, 512), (2, 512)), batch_size=64, learning_rate=0.01, epochs=5)
+    vng.set_ctx()
+    vng.data_prepare()
+    vng.function_set()
+    vng.goodness_of_function_loss_function()
+    vng.goodness_of_function_optimizer_data()
+    vng.goodness_of_function_optimizer_function()
+    vng.pick_the_best_function()

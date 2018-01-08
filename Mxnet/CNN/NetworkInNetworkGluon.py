@@ -8,8 +8,7 @@ from mxnet import init
 from mxnet import gluon
 
 
-class AlexNetGluon(object):
-
+class NetworkInNetworkGluon(object):
     def __init__(self, *, batch_size, learning_rate, epochs):
         # set ctx
         self.__ctx = None
@@ -56,40 +55,44 @@ class AlexNetGluon(object):
                 data = image.imresize(data, self.__resize, self.__resize)
             # change data from height x weight x channel to channel x height x weight
             return nd.transpose(data.astype("float32"), (2, 0, 1)) / 255, label.astype("float32")
+
         self.__train = gluon.data.vision.FashionMNIST(train=True, transform=transform_mnist)
         self.__test = gluon.data.vision.FashionMNIST(train=False, transform=transform_mnist)
 
     def function_set(self):
+        def mlpconv(channels, kernel_size, padding,
+                    strides=1, max_pooling=True):
+            out = gluon.nn.Sequential()
+            out.add(
+                gluon.nn.Conv2D(channels=channels, kernel_size=kernel_size,
+                          strides=strides, padding=padding,
+                          activation="relu"),
+                gluon.nn.Conv2D(channels=channels, kernel_size=1,
+                          padding=0, strides=1, activation="relu"),
+                gluon.nn.Conv2D(channels=channels, kernel_size=1,
+                          padding=0, strides=1, activation="relu"))
+            if max_pooling:
+                out.add(gluon.nn.MaxPool2D(pool_size=3, strides=2))
+            return out
+
         self.__net = gluon.nn.Sequential()
+        # add name_scope on the outer most Sequential
         with self.__net.name_scope():
             self.__net.add(
-                # 第一阶段
-                gluon.nn.Conv2D(channels=96, kernel_size=11,
-                          strides=4, activation='relu'),
-                gluon.nn.MaxPool2D(pool_size=3, strides=2),
-                # 第二阶段
-                gluon.nn.Conv2D(channels=256, kernel_size=5,
-                          padding=2, activation='relu'),
-                gluon.nn.MaxPool2D(pool_size=3, strides=2),
-                # 第三阶段
-                gluon.nn.Conv2D(channels=384, kernel_size=3,
-                          padding=1, activation='relu'),
-                gluon.nn.Conv2D(channels=384, kernel_size=3,
-                          padding=1, activation='relu'),
-                gluon.nn.Conv2D(channels=256, kernel_size=3,
-                          padding=1, activation='relu'),
-                gluon.nn.MaxPool2D(pool_size=3, strides=2),
-                # 第四阶段
-                gluon.nn.Flatten(),
-                gluon.nn.Dense(4096, activation="relu"),
+                mlpconv(96, 11, 0, strides=4),
+                mlpconv(256, 5, 2),
+                mlpconv(384, 3, 1),
+                # 卷积后使用了 Dropout 是否是直接删掉一半 channels ?
                 gluon.nn.Dropout(.5),
-                # 第五阶段
-                gluon.nn.Dense(4096, activation="relu"),
-                gluon.nn.Dropout(.5),
-                # 第六阶段
-                gluon.nn.Dense(10)
+                # 目标类为10类
+                mlpconv(10, 3, 1, max_pooling=False),
+                # 输入为 batch_size x 10 x 5 x 5, 通过AvgPool2D转成
+                # batch_size x 10 x 1 x 1。
+                gluon.nn.AvgPool2D(pool_size=5),
+                # 转成 batch_size x 10
+                gluon.nn.Flatten()
             )
-            self.__net.initialize(init=init.Xavier(), ctx=self.__ctx)
+        self.__net.initialize(init=init.Xavier(), ctx=self.__ctx)
 
     def goodness_of_function_loss_function(self):
         self.__softmax_cross_entropy = gluon.loss.SoftmaxCrossEntropyLoss()
@@ -139,11 +142,11 @@ class AlexNetGluon(object):
 
 
 if __name__ == "__main__":
-    ang = AlexNetGluon(batch_size=64, learning_rate=0.01, epochs=5)
-    ang.set_ctx()
-    ang.data_prepare()
-    ang.function_set()
-    ang.goodness_of_function_loss_function()
-    ang.goodness_of_function_optimizer_data()
-    ang.goodness_of_function_optimizer_function()
-    ang.pick_the_best_function()
+    ning = NetworkInNetworkGluon(batch_size=64, learning_rate=0.01, epochs=5)
+    ning.set_ctx()
+    ning.data_prepare()
+    ning.function_set()
+    ning.goodness_of_function_loss_function()
+    ning.goodness_of_function_optimizer_data()
+    ning.goodness_of_function_optimizer_function()
+    ning.pick_the_best_function()

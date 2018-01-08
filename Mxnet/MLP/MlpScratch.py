@@ -1,30 +1,28 @@
 # coding:utf-8
 
-from mxnet import gluon
 from mxnet import ndarray as nd
 from mxnet import autograd
+from mxnet import gluon
 
 
-class Scratch(object):
+class MlpScratch(object):
 
-    def __init__(self, *, batch_size, learning_rate, epochs):
+    def __init__(self, *, num_hidden, batch_size, learning_rate, epochs):
         # data prepare
-        # 原始数据包含 X, y
         self.__num_output = 10
         self.__num_input = 784
         self.__train = None
         self.__test = None
 
-        self.__w = None
-        self.__b = None
+        # parameters
+        self.__num_hidden = num_hidden
+        self.__w1 = None
+        self.__b1 = None
+        self.__w2 = None
+        self.__b2 = None
         self.__params = None
 
-        # function set
-
-        # goodness of function loss function
-        self.__batch_y_hat_exp = None
-        self.__batch_y_hat_partition = None
-        self.__batch_y_hat_exp_divided_partition = None
+        # function set & goodness of function loss function
 
         # goodness of function optimizer data
         self.__batch_size = batch_size
@@ -46,23 +44,29 @@ class Scratch(object):
         self.__train = gluon.data.vision.FashionMNIST(train=True, transform=transform)
         self.__test = gluon.data.vision.FashionMNIST(train=False, transform=transform)
 
-        # 10 分类问题相当于有 10 个 Logistics Regression self.__num_output
-        # 每个 Logistics Regression 接收 784 个特征 self.__num_input
-        self.__w = nd.random_normal(shape=(self.__num_input, self.__num_output))
-        self.__b = nd.random_normal(shape=(1, self.__num_output))
-        self.__params = [self.__w, self.__b]
+        # loc scale 分布的均值与方差 , 方差越小越容易收敛
+        self.__w1 = nd.random_normal(shape=(self.__num_input, self.__num_hidden), scale=0.01)
+        self.__b1 = nd.random_normal(shape=(1, self.__num_hidden))
+        self.__w2 = nd.random_normal(shape=(self.__num_hidden, self.__num_output), scale=0.01)
+        self.__b2 = nd.random_normal(shape=(1, self.__num_output))
+        self.__params = [self.__w1, self.__b1, self.__w2, self.__b2]
 
     def function_set(self):
-        return nd.dot(self.__batch_X.reshape((-1, self.__num_input)), self.__w) + self.__b
+        # relu = lambda x: nd.maximum(x, 0)
+
+        def relu(x):
+            return nd.maximum(x, 0)
+
+        hidden_layer_before_act = nd.dot(self.__batch_X.reshape((-1, self.__num_input)), self.__w1) + self.__b1
+        hidden_layer_after_act = relu(hidden_layer_before_act)
+        output_layer_before_act = nd.dot(hidden_layer_after_act, self.__w2) + self.__b2
+
+        return output_layer_before_act
 
     def goodness_of_function_loss_function(self):
-        # 取指数使得所有值 > 0
-        self.__batch_y_hat_exp = nd.exp(self.__batch_y_hat)
-        # 求 partition 用于归一化概率
-        self.__batch_y_hat_partition = self.__batch_y_hat_exp.sum(axis=1, keepdims=True)
-        self.__batch_y_hat_exp_divided_partition = self.__batch_y_hat_exp / self.__batch_y_hat_partition
+        loss = gluon.loss.SoftmaxCELoss()
 
-        return - nd.log(nd.pick(self.__batch_y_hat_exp_divided_partition, self.__batch_y))
+        return loss(self.__batch_y_hat, self.__batch_y)
 
     def goodness_of_function_optimizer_data(self):
         self.__train_data_iter = gluon.data.DataLoader(
@@ -92,7 +96,7 @@ class Scratch(object):
 
 
 if __name__ == "__main__":
-    s = Scratch(batch_size=256, learning_rate=0.1, epochs=5)
-    s.data_prepare()
-    s.goodness_of_function_optimizer_data()
-    s.train_model()
+    ms = MlpScratch(num_hidden=256, batch_size=256, learning_rate=0.5, epochs=5)
+    ms.data_prepare()
+    ms.goodness_of_function_optimizer_data()
+    ms.train_model()

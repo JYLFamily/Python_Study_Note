@@ -5,7 +5,7 @@ from mxnet import autograd
 from mxnet import gluon
 
 
-class Gluon(object):
+class SoftmaxGluon(object):
 
     def __init__(self, *, batch_size, learning_rate, epochs):
         # data prepare
@@ -77,11 +77,11 @@ class Gluon(object):
             print(self.__net(self.__batch_X).argmax(axis=1))
 
 if __name__ == "__main__":
-    g = Gluon(batch_size=256, learning_rate=0.1, epochs=5)
-    g.data_prepare()
-    g.function_set()
-    g.goodness_of_function_loss_function()
-    g.goodness_of_functionoptimizer_data()
-    g.goodness_of_function_optimizer_function()
-    g.train_model()
-    g.test_model()
+    sg = SoftmaxGluon(batch_size=256, learning_rate=0.1, epochs=5)
+    sg.data_prepare()
+    sg.function_set()
+    sg.goodness_of_function_loss_function()
+    sg.goodness_of_functionoptimizer_data()
+    sg.goodness_of_function_optimizer_function()
+    sg.train_model()
+    sg.test_model()
