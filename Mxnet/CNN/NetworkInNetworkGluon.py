@@ -60,6 +60,7 @@ class NetworkInNetworkGluon(object):
         self.__test = gluon.data.vision.FashionMNIST(train=False, transform=transform_mnist)
 
     def function_set(self):
+        # channels output_channels
         def mlpconv(channels, kernel_size, padding,
                     strides=1, max_pooling=True):
             out = gluon.nn.Sequential()

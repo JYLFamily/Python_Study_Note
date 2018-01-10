@@ -1,23 +1,23 @@
 # coding:utf-8
 
 import mxnet as mx
-from mxnet import ndarray as nd
+from mxnet import nd
 from mxnet import autograd
 from mxnet import image
 from mxnet import init
 from mxnet import gluon
 
 
-class AlexNetGluon(object):
-
-    def __init__(self, *, batch_size, learning_rate, epochs):
+class CIFAR_10(object):
+    def __init__(self, *, train_augs=None, test_augs=None, batch_size=None, learning_rate=None, epochs=None):
         # set ctx
         self.__ctx = None
 
         # data prepare
-        self.__resize = 96
-        self.__train = None
-        self.__test = None
+        self.__train_augs = train_augs
+        self.__test_augs = test_augs
+        self.__cifar10_train = None
+        self.__cifar10_test = None
 
         # function set
         self.__net = None
@@ -43,32 +43,44 @@ class AlexNetGluon(object):
     def set_ctx(self):
         try:
             self.__ctx = mx.gpu()
-            _ = nd.zeros(shape=(1,), ctx=self.__ctx)
+            _ = nd.zeros(shape=(1, ), ctx=mx.gpu())
         except:
             self.__ctx = mx.cpu()
 
+    # 如下的 data_prepare 方式更像是预处理不是图片增广 , 只是将原始样本水平旋转一下 , 然后随机剪裁变小
+    # 一个样本还是一个样本我理解真正的图片增广应该是多种 处理后 concat channels 变多
     def data_prepare(self):
-        def transform_mnist(data, label):
-            if self.__resize:
-                # data 默认 (28, 28, 1)
-                # data imresize 后 (224, 224, 1)
-                data = image.imresize(data, self.__resize, self.__resize)
-            # change data from height x weight x channel to channel x height x weight
-            return nd.transpose(data.astype("float32"), (2, 0, 1)) / 255, label.astype("float32")
-        self.__train = gluon.data.vision.FashionMNIST(train=True, transform=transform_mnist)
-        self.__test = gluon.data.vision.FashionMNIST(train=False, transform=transform_mnist)
+        def apply_aug_list(img, augs):
+            for f in augs:
+                img = f(img)
+            return img
+
+        def get_transform(augs):
+            def transform(data, label):
+                # data: height x width x channel
+                data = data.astype("float32")
+                if augs is not None:
+                    data = apply_aug_list(data, augs)
+                data = nd.transpose(data, (2, 0, 1)).clip(0, 255) / 255
+                return data, label.astype("float32")
+            return transform
+
+        self.__cifar10_train = gluon.data.vision.CIFAR10(
+            train=True, transform=get_transform(self.__train_augs))
+        self.__cifar10_test = gluon.data.vision.CIFAR10(
+            train=False, transform=get_transform(self.__test_augs))
 
     def function_set(self):
         self.__net = gluon.nn.Sequential()
         with self.__net.name_scope():
             self.__net.add(
                 # 第一阶段
-                gluon.nn.Conv2D(channels=96, kernel_size=11,
-                          strides=4, activation='relu'),
+                gluon.nn.Conv2D(channels=96, kernel_size=3,
+                          strides=1, activation='relu'),
                 gluon.nn.MaxPool2D(pool_size=3, strides=2),
                 # 第二阶段
-                gluon.nn.Conv2D(channels=256, kernel_size=5,
-                          padding=2, activation='relu'),
+                gluon.nn.Conv2D(channels=256, kernel_size=3,
+                          padding=1, activation='relu'),
                 gluon.nn.MaxPool2D(pool_size=3, strides=2),
                 # 第三阶段
                 gluon.nn.Conv2D(channels=384, kernel_size=3,
@@ -95,9 +107,9 @@ class AlexNetGluon(object):
 
     def goodness_of_function_optimizer_data(self):
         self.__train_data_iter = gluon.data.DataLoader(
-            self.__train, self.__batch_size, shuffle=True)
+            self.__cifar10_train, self.__batch_size, shuffle=True)
         self.__test_data_iter = gluon.data.DataLoader(
-            self.__test, self.__batch_size, shuffle=False)
+            self.__cifar10_test, self.__batch_size, shuffle=False)
 
     def goodness_of_function_optimizer_function(self):
         self.__trainer = gluon.Trainer(
@@ -138,11 +150,16 @@ class AlexNetGluon(object):
 
 
 if __name__ == "__main__":
-    ang = AlexNetGluon(batch_size=64, learning_rate=0.01, epochs=5)
-    ang.set_ctx()
-    ang.data_prepare()
-    ang.function_set()
-    ang.goodness_of_function_loss_function()
-    ang.goodness_of_function_optimizer_data()
-    ang.goodness_of_function_optimizer_function()
-    ang.pick_the_best_function()
+    c10 = CIFAR_10(
+        train_augs=[image.HorizontalFlipAug(.5), image.RandomCropAug((28, 28))],
+        test_augs=[image.CenterCropAug((28, 28))],
+        batch_size=128,
+        learning_rate=0.1,
+        epochs=5)
+    c10.set_ctx()
+    c10.data_prepare()
+    c10.function_set()
+    c10.goodness_of_function_loss_function()
+    c10.goodness_of_function_optimizer_data()
+    c10.goodness_of_function_optimizer_function()
+    c10.pick_the_best_function()
