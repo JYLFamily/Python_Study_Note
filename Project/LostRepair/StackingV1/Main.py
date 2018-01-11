@@ -1,8 +1,8 @@
 # coding:utf-8
 
-from Project.LostRepair.ThirdStep.RawDataSplit import RawDataSplit
-from Project.LostRepair.ThirdStep.StackingAssistant import StackingAssistant
-from Project.LostRepair.ThirdStep.XgbModel import XgbModel
+from Project.LostRepair.StackingV1.RawDataSplit import RawDataSplit
+from Project.LostRepair.StackingV1.StackingAssistant import StackingAssistant
+from Project.LostRepair.StackingV1.XgbModel import XgbModel
 
 if __name__ == "__main__":
     rds = RawDataSplit(input_path="D:\\Project\\LostRepair\\yunyingshang\\all.csv")

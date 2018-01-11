@@ -6,7 +6,7 @@ from keras import backend as K
 from keras import Sequential
 from keras.layers import Dense, Activation
 from sklearn.model_selection import train_test_split
-from Project.LostRepair.LostRepairV1.FeatureEngineering import FeatureEngineering
+from Project.LostRepair.StackingAndHiddenLayerOutputV1.FeatureEngineering import FeatureEngineering
 
 
 class NnGenerateFeature(object):

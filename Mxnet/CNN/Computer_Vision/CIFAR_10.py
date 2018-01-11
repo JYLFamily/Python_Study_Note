@@ -9,7 +9,8 @@ from mxnet import gluon
 
 
 class CIFAR_10(object):
-    def __init__(self, *, train_augs=None, test_augs=None, batch_size=None, learning_rate=None, epochs=None):
+    def __init__(
+            self, *, train_augs=None, test_augs=None, architecture=None, batch_size=None, learning_rate=None, epochs=None):
         # set ctx
         self.__ctx = None
 
@@ -20,6 +21,7 @@ class CIFAR_10(object):
         self.__cifar10_test = None
 
         # function set
+        self.__architecture = architecture
         self.__net = None
 
         # goodness of function loss function
@@ -52,7 +54,8 @@ class CIFAR_10(object):
     def data_prepare(self):
         def apply_aug_list(img, augs):
             for f in augs:
-                img = f(img)
+                # 根据第几个 channels concat dim=2 也就是 32×32×3 的 3 这个 axis
+                img = nd.concat(img, f(img), dim=2)
             return img
 
         def get_transform(augs):
@@ -71,36 +74,33 @@ class CIFAR_10(object):
             train=False, transform=get_transform(self.__test_augs))
 
     def function_set(self):
+        def vgg_block(num_convs, num_filters):
+            out = gluon.nn.Sequential()
+            for _ in range(num_convs):
+                out.add(
+                    gluon.nn.Conv2D(channels=num_filters, kernel_size=3,
+                              padding=1, activation="relu")
+                )
+            out.add(gluon.nn.MaxPool2D(pool_size=2, strides=2))
+            return out
+
+        def vgg_stack(architecture):
+            out = gluon.nn.Sequential()
+            for (num_convs, num_filters) in architecture:
+                out.add(vgg_block(num_convs, num_filters))
+            return out
+
         self.__net = gluon.nn.Sequential()
         with self.__net.name_scope():
             self.__net.add(
-                # 第一阶段
-                gluon.nn.Conv2D(channels=96, kernel_size=3,
-                          strides=1, activation='relu'),
-                gluon.nn.MaxPool2D(pool_size=3, strides=2),
-                # 第二阶段
-                gluon.nn.Conv2D(channels=256, kernel_size=3,
-                          padding=1, activation='relu'),
-                gluon.nn.MaxPool2D(pool_size=3, strides=2),
-                # 第三阶段
-                gluon.nn.Conv2D(channels=384, kernel_size=3,
-                          padding=1, activation='relu'),
-                gluon.nn.Conv2D(channels=384, kernel_size=3,
-                          padding=1, activation='relu'),
-                gluon.nn.Conv2D(channels=256, kernel_size=3,
-                          padding=1, activation='relu'),
-                gluon.nn.MaxPool2D(pool_size=3, strides=2),
-                # 第四阶段
+                vgg_stack(self.__architecture),
                 gluon.nn.Flatten(),
                 gluon.nn.Dense(4096, activation="relu"),
                 gluon.nn.Dropout(.5),
-                # 第五阶段
                 gluon.nn.Dense(4096, activation="relu"),
                 gluon.nn.Dropout(.5),
-                # 第六阶段
-                gluon.nn.Dense(10)
-            )
-            self.__net.initialize(init=init.Xavier(), ctx=self.__ctx)
+                gluon.nn.Dense(10))
+        self.__net.initialize(init=init.Xavier(), ctx=self.__ctx)
 
     def goodness_of_function_loss_function(self):
         self.__softmax_cross_entropy = gluon.loss.SoftmaxCrossEntropyLoss()
@@ -151,11 +151,12 @@ class CIFAR_10(object):
 
 if __name__ == "__main__":
     c10 = CIFAR_10(
-        train_augs=[image.HorizontalFlipAug(.5), image.RandomCropAug((28, 28))],
-        test_augs=[image.CenterCropAug((28, 28))],
+        train_augs=[image.HorizontalFlipAug(.5), image.RandomSizedCropAug((32, 32), .1, (.5, 2))],
+        test_augs=[image.HorizontalFlipAug(.5), image.RandomSizedCropAug((32, 32), .1, (.5, 2))],
+        architecture=((1, 64), (1, 128), (2, 256), (2, 512), (2, 512)),
         batch_size=128,
         learning_rate=0.1,
-        epochs=5)
+        epochs=20)
     c10.set_ctx()
     c10.data_prepare()
     c10.function_set()

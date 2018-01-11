@@ -10,8 +10,8 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.feature_selection import RFE
 from xgboost import XGBClassifier
 from sklearn.metrics import roc_auc_score
-from Project.LostRepair.LostRepairV1.FeatureEngineering import FeatureEngineering
-from Project.LostRepair.LostRepairV1.NnGenerateFeature import NnGenerateFeature
+from Project.LostRepair.StackingAndHiddenLayerOutputV1.FeatureEngineering import FeatureEngineering
+from Project.LostRepair.StackingAndHiddenLayerOutputV1.NnGenerateFeature import NnGenerateFeature
 
 
 class Main(object):
