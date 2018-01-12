@@ -6,12 +6,12 @@ import pandas as pd
 from mxnet import nd
 from mxnet import autograd
 from mxnet import gluon
-from mxnet.gluon import nn
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.preprocessing import StandardScaler
 from Project.LostRepair.UseCnnForLostRepairV1.LostRepairBlock import LostRepairBlock
+from sklearn.metrics import roc_auc_score
 
 
 class UseCnnForLostRepairV1Main(object):
@@ -112,19 +112,19 @@ class UseCnnForLostRepairV1Main(object):
             self.__net.collect_params(), "sgd", {"learning_rate": self.__learning_rate})
 
     def pick_the_best_function(self):
-        def accuracy(y_hat, y):
-            # 注意这里 y_hat 的 shape 必须与 y 的 shape 保持一致
-            return nd.mean(y_hat.argmax(axis=1).reshape(y.shape) == y).asscalar()
-
-        def evaluate_accuracy(data_iter, net, ctx):
-            acc = 0.
-            for batch_X, batch_y in data_iter:
-                batch_X = batch_X.as_in_context(ctx)
-                batch_y = batch_y.as_in_context(ctx)
-                batch_y = batch_y.reshape((-1, 1))
-                batch_y_hat = net(batch_X)
-                acc += accuracy(batch_y_hat, batch_y)
-            return acc / len(data_iter)
+        # def accuracy(y_hat, y):
+        #     # 注意这里 y_hat 的 shape 必须与 y 的 shape 保持一致
+        #     return nd.mean(y_hat.argmax(axis=1).reshape(y.shape) == y).asscalar()
+        #
+        # def evaluate_accuracy(data_iter, net, ctx):
+        #     acc = 0.
+        #     for batch_X, batch_y in data_iter:
+        #         batch_X = batch_X.as_in_context(ctx)
+        #         batch_y = batch_y.as_in_context(ctx)
+        #         batch_y = batch_y.reshape((-1, 1))
+        #         batch_y_hat = net(batch_X)
+        #         acc += accuracy(batch_y_hat, batch_y)
+        #     return acc / len(data_iter)
 
         for e in range(self.__epochs):
             train_loss = 0.
@@ -139,10 +139,19 @@ class UseCnnForLostRepairV1Main(object):
                 self.__trainer.step(self.__batch_size)
 
                 train_loss += nd.mean(loss).asscalar()
-                train_acc += accuracy(self.__batch_y_hat, self.__batch_y)
-            test_acc = evaluate_accuracy(self.__data_iter_test, self.__net, self.__ctx)
-            print("Epoch %d. Loss: %f, Train acc %f, Test acc %f" % (
-                e, train_loss / len(self.__data_iter_train), train_acc / len(self.__data_iter_train), test_acc))
+
+            train_auc = (
+                roc_auc_score(self.__train_label,
+                    nd.sigmoid(self.__net(nd.array(self.__train).as_in_context(self.__ctx))).asnumpy()
+                )
+            )
+            test_auc = (
+                roc_auc_score(self.__test_label,
+                    nd.sigmoid(self.__net(nd.array(self.__test).as_in_context(self.__ctx))).asnumpy()
+                )
+            )
+            print("Epoch %d. Loss: %f, Train auc %f, Test auc %f" % (
+                e, train_loss / len(self.__data_iter_train), train_auc, test_auc))
 
 if __name__ == "__main__":
     m = UseCnnForLostRepairV1Main(
