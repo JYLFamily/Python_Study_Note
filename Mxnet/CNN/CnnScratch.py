@@ -73,7 +73,6 @@ class CnnScratch(object):
         self.__params = [self.__W1, self.__b1, self.__W2, self.__b2, self.__W3, self.__b3, self.__W4, self.__b4]
 
     def function_set(self):
-        self.__batch_X = self.__batch_X.as_in_context(self.__W1.context)
         # 第一层卷积
         # 卷积
         h1_conv = nd.Convolution(
@@ -94,11 +93,11 @@ class CnnScratch(object):
         # 第二层全连接
         h4_linear = nd.dot(h3, self.__W4) + self.__b4
 
-        print("1st conv block:", h1.shape)
-        print("2nd conv block:", h2.shape)
-        print("1st dense:", h3.shape)
-        print("2nd dense:", h4_linear.shape)
-        print("output:", h4_linear)
+        # print("1st conv block:", h1.shape)
+        # print("2nd conv block:", h2.shape)
+        # print("1st dense:", h3.shape)
+        # print("2nd dense:", h4_linear.shape)
+        # print("output:", h4_linear)
 
         return h4_linear
 
@@ -126,13 +125,14 @@ class CnnScratch(object):
             for self.__batch_X, self.__batch_y in self.__train_data_iter:
                 self.__batch_X = self.__batch_X.reshape((-1, 1, 28, 28)).as_in_context(self.__ctx)
                 self.__batch_y = self.__batch_y.reshape((-1, 1)).as_in_context(self.__ctx)
+                print(self.__batch_X)
                 with autograd.record():
                     self.__batch_y_hat = self.function_set()
                     loss = self.goodness_of_function_loss_function()
                 loss.backward()
                 self.goodness_of_function_optimizer_function()
-                total_mean_loss += nd.mean(loss).asscalar()
 
+                total_mean_loss += nd.mean(loss).asscalar()
             print("Epoch %d, average loss: %f" % (e, total_mean_loss / len(self.__train_data_iter)))
 
 

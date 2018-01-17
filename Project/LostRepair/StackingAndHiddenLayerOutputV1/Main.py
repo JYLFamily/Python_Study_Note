@@ -11,7 +11,7 @@ from sklearn.feature_selection import RFE
 from xgboost import XGBClassifier
 from sklearn.metrics import roc_auc_score
 from Project.LostRepair.StackingAndHiddenLayerOutputV1.FeatureEngineering import FeatureEngineering
-from Project.LostRepair.StackingAndHiddenLayerOutputV1.NnGenerateFeature import NnGenerateFeature
+# from Project.LostRepair.StackingAndHiddenLayerOutputV1.NnGenerateFeature import NnGenerateFeature
 
 
 class Main(object):
@@ -21,20 +21,23 @@ class Main(object):
                             filemode="w",
                             format="[%(asctime)s]-[%(name)s]-[%(lineno)d]-[%(levelname)s]-[%(message)s]",
                             level=logging.DEBUG)
+        # train test split
         self.__input_path = input_path
-        self.__X = pd.read_csv(self.__input_path, sep=sep, header=header, usecols=list(range(1, 4)))
-        self.__y = pd.read_csv(self.__input_path, sep=sep, header=header, usecols=[0])
+        self.__X = pd.read_csv(self.__input_path, sep=sep, header=header, usecols=list(range(0, 4))).values
+        self.__y = pd.read_csv(self.__input_path, sep=sep, header=header, usecols=[4]).values.reshape((-1, ))
         self.__test_size, self.__random_state = test_size, random_state
-        self.__cv = cv
-        self.__train, self.__train_label, self.__test, self.__test_label = None, None, None, None
+        self.__train, self.__train_label, self.__test, self.__test_label = [None for _ in range(4)]
 
+        # feature engineering
         self.__train_linear, self.__test_linear = None, None
         self.__train_tree, self.__test_tree = None, None
         self.__train_net, self.__test_net = None, None
 
+        # nn generate feature
         self.__train_output_layer, self.__test_output_layer = None, None
 
         self.__skf = None
+        self.__cv = cv
         self.__oof_train_tree, self.__oof_test_tree = None, None
         self.__oof_train_linear, self.__oof_test_linear = None, None
 
@@ -42,11 +45,12 @@ class Main(object):
         self.__train_all, self.__test_all = None, None
 
     def train_test_split(self):
+        # y_label 有缺失值直接删掉该样本 , np.isnan(self.__y) self.__y shape 是 (exampel,)
+        self.__X = self.__X[np.logical_not(np.isnan(self.__y)), :]
+        self.__y = self.__y[np.logical_not(np.isnan(self.__y))]
+
         self.__train, self.__test, self.__train_label, self.__test_label = (
             train_test_split(self.__X, self.__y, test_size=self.__test_size, random_state=self.__random_state))
-
-        self.__train_label = self.__train_label.values
-        self.__test_label = self.__test_label.values
         logging.info("train test split compelet.")
 
     def feature_engineering(self):
@@ -68,18 +72,19 @@ class Main(object):
         )
         logging.info("net model feature engineering complete")
 
-    def nn_generate_feature(self):
-        self.__train_output_layer, self.__test_output_layer = (
-            NnGenerateFeature.get_intermediate_layer_output(train=self.__train_net, train_label=self.__train_label,
-                                                            test=self.__test_net, test_label=self.__test_label)
-        )
-        logging.info("nn generate feature complete")
+    # def nn_generate_feature(self):
+    #     self.__train_output_layer, self.__test_output_layer = (
+    #         NnGenerateFeature.get_intermediate_layer_output(train=self.__train_net, train_label=self.__train_label,
+    #                                                         test=self.__test_net, test_label=self.__test_label)
+    #     )
+    #     logging.info("nn generate feature complete")
 
     def stage_one(self, *, tree_model_list, linear_model_list):
         try:
             self.__skf = StratifiedKFold(n_splits=self.__cv, shuffle=True, random_state=self.__random_state)
 
-            def get_oof_train(model, train, train_label):
+            def get_oof_train(stacking_tuple):
+                model, train, train_label = stacking_tuple
                 oof_train = np.zeros((train.shape[0], 1))
 
                 for i, (train_index, test_index) in enumerate(self.__skf.split(train, train_label)):
@@ -92,45 +97,52 @@ class Main(object):
 
                 return oof_train
 
-            def get_oof_test(model, train, train_label, test):
+            def get_oof_test(stacking_tuple):
+                model, train, train_label, test = stacking_tuple
                 model.fit(train, train_label)
                 oof_test = model.predict_proba(test)[:, 1].reshape((-1, 1))
 
                 return oof_test
 
-            self.__oof_train_tree = (
-                np.hstack(tuple(map(get_oof_train,
-                                    tree_model_list,
-                                    [self.__train_tree] * len(tree_model_list),
-                                    [self.__train_label] * len(tree_model_list))))
-            )
-            self.__oof_test_tree = (
-                np.hstack(tuple(map(get_oof_test, tree_model_list,
-                                    [self.__train_tree] * len(tree_model_list),
-                                    [self.__train_label] * len(tree_model_list),
-                                    [self.__test_tree] * len(tree_model_list))))
-            )
-            self.__oof_train_linear = (
-                np.hstack(tuple(map(get_oof_train,
-                                    linear_model_list,
-                                    [self.__train_linear] * len(linear_model_list),
-                                    [self.__train_label] * len(linear_model_list))))
-            )
-            self.__oof_test_linear = (
-                np.hstack(tuple(map(get_oof_test, linear_model_list,
-                                    [self.__train_linear] * len(linear_model_list),
-                                    [self.__train_label] * len(linear_model_list),
-                                    [self.__test_linear] * len(linear_model_list))))
+            oof_train_tree_zip = zip(
+                tree_model_list,
+                [self.__train_tree] * len(tree_model_list),
+                [self.__train_label] * len(tree_model_list)
             )
 
-            self.__train_all = np.hstack((self.__train_tree,
-                                          self.__train_output_layer,
-                                          self.__oof_train_tree,
-                                          self.__oof_train_linear))
-            self.__test_all = np.hstack((self.__test_tree,
-                                         self.__test_output_layer,
-                                         self.__oof_test_tree,
-                                         self.__oof_test_linear))
+            self.__oof_train_tree = np.hstack(tuple(map(get_oof_train, list(oof_train_tree_zip))))
+
+            oof_test_tree_zip = zip(
+                tree_model_list,
+                [self.__train_tree] * len(tree_model_list),
+                [self.__train_label] * len(tree_model_list),
+                [self.__test_tree] * len(tree_model_list)
+            )
+
+            self.__oof_test_tree = np.hstack(tuple(map(get_oof_test, list(oof_test_tree_zip))))
+
+            oof_train_linear_zip = zip(
+                linear_model_list,
+                [self.__train_linear] * len(linear_model_list),
+                [self.__train_label] * len(linear_model_list)
+            )
+
+            self.__oof_train_linear = np.hstack(tuple(map(get_oof_train, list(oof_train_linear_zip))))
+
+            oof_test_linear_zip = zip(
+                linear_model_list,
+                [self.__train_linear] * len(linear_model_list),
+                [self.__train_label] * len(linear_model_list),
+                [self.__test_linear] * len(linear_model_list)
+            )
+
+            self.__oof_test_linear = np.hstack(tuple(map(get_oof_test, list(oof_test_linear_zip))))
+
+            self.__train_all = np.hstack((self.__train_tree, # self.__train_output_layer,
+                                          self.__oof_train_tree, self.__oof_train_linear))
+
+            self.__test_all = np.hstack((self.__test_tree, # self.__test_output_layer,
+                                         self.__oof_test_tree, self.__oof_test_linear))
 
             logging.info("stage one compelet.")
         except Exception as e:
@@ -140,19 +152,20 @@ class Main(object):
     def stage_two(self, model):
         try:
             model.fit(self.__train_all, self.__train_label)
-            print(roc_auc_score(self.__test_label, model.predict_proba(self.__test_all)[:, 1]))
+            print("AUC: %.4f" % roc_auc_score(self.__test_label, model.predict_proba(self.__test_all)[:, 1]))
             logging.info("stage two compelet.")
         except Exception as e:
             logging.exception(e)
             raise
 
+
 if __name__ == "__main__":
-    m = Main(input_path="C:\\Users\\Dell\\Desktop\\model.txt",
-             sep="\t", header=None, test_size=0.2, random_state=9, cv=5)
+    m = Main(input_path="D:\\Project\\LostRepair\\more_than_one_number\\train.csv",
+             sep=",", header=0, test_size=0.2, random_state=9, cv=5)
 
     m.train_test_split()
     m.feature_engineering()
-    m.nn_generate_feature()
+    # m.nn_generate_feature()
 
     # tree model
     XGB_tree = XGBClassifier()

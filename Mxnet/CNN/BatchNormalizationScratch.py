@@ -45,19 +45,18 @@ class BatchNormalizationScratch(object):
 
     def set_ctx(self):
         try:
-            self.__ctx = mx.gpu()
+            self.__ctx = mx.cpu()
             _ = nd.zeros((1,), ctx=self.__ctx)
         except:
             self.__ctx = mx.cpu()
 
     def data_prepare(self):
         def transform(data, label):
-            return data.astype("float32") / 255, label.astype("float32")
+            return nd.transpose(data.astype("float32") / 255, (2, 0, 1)), label.astype("float32")
         self.__train = gluon.data.vision.FashionMNIST(train=True, transform=transform)
         self.__test = gluon.data.vision.FashionMNIST(train=False, transform=transform)
 
-        weight_scale = .01
-
+        weight_scale = 0.01
         # 第一层卷积 output_channels/num_filter = 20 kernel size (5, 5)
         self.__W1 = nd.random_normal(shape=(20, 1, 5, 5), scale=weight_scale, ctx=self.__ctx)
         self.__b1 = nd.zeros(20, ctx=self.__ctx)
@@ -108,7 +107,6 @@ class BatchNormalizationScratch(object):
                 # 变形使得可以正确的广播
                 moving_mean = moving_mean.reshape(mean.shape)
                 moving_variance = moving_variance.reshape(mean.shape)
-
             # 均一化
             if is_training:
                 X_hat = (X - mean) / nd.sqrt(variance + eps)
@@ -168,31 +166,30 @@ class BatchNormalizationScratch(object):
             param[:] = param - self.__learning_rate / self.__batch_size * param.grad
 
     def pick_the_best_function(self):
-        for param in self.__params:
-            param.attach_grad()
-
         def accuracy(y_hat, y):
             # 注意这里 y_hat 的 shape 必须与 y 的 shape 保持一致
-            y_hat = y_hat.as_in_context(self.__ctx)
-            y = y.as_in_context(self.__ctx)
             return nd.mean(y_hat.argmax(axis=1).reshape(y.shape) == y).asscalar()
 
         def evaluate_accuracy(data_iter, net, ctx):
             acc = 0.
             for batch_X, batch_y in data_iter:
-                self.__batch_X = batch_X.reshape((-1, 1, 28, 28)).as_in_context(ctx)
-                self.__batch_y = batch_y.reshape((-1, 1)).as_in_context(ctx)
-                batch_y_hat = net()
-                acc += accuracy(batch_y_hat, batch_y)
+                self.__batch_X = batch_X.as_in_context(ctx)
+                self.__batch_y = batch_y.as_in_context(ctx)
+                self.__batch_y_hat = net()
+                acc += accuracy(self.__batch_y_hat, self.__batch_y)
             return acc / len(data_iter)
+
+        for param in self.__params:
+            param.attach_grad()
 
         for e in range(self.__epochs):
             train_loss = 0.
             train_acc = 0.
+
             self.__is_training = True
             for self.__batch_X, self.__batch_y in self.__train_data_iter:
-                self.__batch_X = self.__batch_X.reshape((-1, 1, 28, 28)).as_in_context(self.__ctx)
-                self.__batch_y = self.__batch_y.reshape((-1, 1)).as_in_context(self.__ctx)
+                self.__batch_X = self.__batch_X.as_in_context(self.__ctx)
+                self.__batch_y = self.__batch_y.as_in_context(self.__ctx)
                 with autograd.record():
                     self.__batch_y_hat = self.function_set()
                     loss = self.goodness_of_function_loss_function()
@@ -208,7 +205,7 @@ class BatchNormalizationScratch(object):
 
 
 if __name__ == "__main__":
-    bns = BatchNormalizationScratch(batch_size=256, learning_rate=0.1, epochs=5)
+    bns = BatchNormalizationScratch(batch_size=256, learning_rate=0.2, epochs=5)
     bns.set_ctx()
     bns.data_prepare()
     bns.goodness_of_function_optimizer_data()

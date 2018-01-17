@@ -12,27 +12,15 @@ from Project.LostRepair.StackingAndHiddenLayerOutputV1.FeatureEngineering import
 class NnGenerateFeature(object):
     @staticmethod
     def get_intermediate_layer_output(*, train, train_label, test, test_label):
-        if isinstance(train, pd.DataFrame):
-            train = train.values
-
-        if isinstance(train_label, pd.DataFrame):
-            train_label = train_label.values
-
-        if isinstance(test, pd.DataFrame):
-            test = test.values
-
-        if isinstance(test_label, pd.DataFrame):
-            test_label = test_label.values
-
         # function set
         model = Sequential([
             # 4 层神经网络
             # 输入层 + 第一个隐藏层
             Dense(units=100, input_dim=train.shape[1]),
-            Activation("relu"),
+            Activation("sigmoid"),
             # 第二个隐藏层
             Dense(units=100),
-            Activation("relu"),
+            Activation("sigmoid"),
             # 输出层
             Dense(units=1),
             Activation("sigmoid")
