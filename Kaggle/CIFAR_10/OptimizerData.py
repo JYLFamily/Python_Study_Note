@@ -8,7 +8,7 @@ from mxnet.gluon.data import vision
 import numpy as np
 
 
-class DataPrepare(object):
+class OptimizerData(object):
 
     def __init__(self, *, input_path, folder_list, batch_size):
         self.__input_path = input_path
@@ -71,11 +71,11 @@ class DataPrepare(object):
 
 
 if __name__ == "__main__":
-    dp = DataPrepare(input_path="D:\\Code\\kaggle\\cifar10\\train_valid_test",
-                     folder_list=["train", "valid", "train_valid", "test"],
-                     batch_size=128)
+    od = OptimizerData(input_path="D:\\Code\\kaggle\\cifar10\\train_valid_test",
+                      folder_list=["train", "valid", "train_valid", "test"],
+                      batch_size=128)
 
-    train_data, valid_data, train_valid_data, test_data = dp.load_data()
+    train_data, valid_data, train_valid_data, test_data = od.load_data()
 
     for batch_X, batch_y in train_data:
         print(batch_X.shape)
