@@ -2,6 +2,7 @@
 
 import datetime
 import mxnet as mx
+import pandas as pd
 from mxnet import nd
 from mxnet import gluon
 from mxnet import autograd
@@ -12,7 +13,9 @@ from Kaggle.CIFAR_10.ResNet import ResNet
 class Main(object):
 
     def __init__(self, *,
-                 input_path, folder_list, batch_size, learning_rate, momentum, wd, leanring_rate_decay, epochs):
+                 input_path, folder_list, batch_size,
+                 learning_rate, momentum, wd,
+                 learning_rate_period, leanring_rate_decay, epochs):
         # set ctx
         self.__ctx = None
 
@@ -29,6 +32,10 @@ class Main(object):
         self.__folder_list = folder_list
         self.__batch_size = batch_size
 
+        self.__train_ds = None
+        self.__valid_ds = None
+        self.__train_valid_ds = None
+        self.__test_ds = None
         self.__train_data_iter = None
         self.__valid_data_iter = None
         self.__train_valid_data_iter = None
@@ -41,11 +48,18 @@ class Main(object):
         self.__wd = wd
 
         # pick the best function
+        self.__learning_rate_period = learning_rate_period
         self.__learning_rate_decay = leanring_rate_decay
         self.__epochs = epochs
         self.__batch_X = None
         self.__batch_y = None
         self.__batch_y_hat = None
+
+        # submission
+        ## 用于存储样本所属类别
+        self.__preds = []
+        self.__sorted_ids = None
+        self.__submission_df = None
 
     def set_ctx(self):
         try:
@@ -60,23 +74,23 @@ class Main(object):
     def function_set(self):
         self.__net = ResNet(num_classes=10, verbose=False)
         self.__net.initialize(ctx=self.__ctx)
-        # self.__net.hybridize()
+        self.__net.hybridize()
 
     def goodness_of_function_loss_function(self):
         self.__loss = gluon.loss.SoftmaxCrossEntropyLoss()
 
     def goodness_of_function_optimizer_data(self):
         od = OptimizerData(input_path=self.__input_path, folder_list=self.__folder_list, batch_size=self.__batch_size)
+
+        self.__train_ds, self.__valid_ds, self.__train_valid_ds, self.__test_ds, \
         self.__train_data_iter, self.__valid_data_iter, self.__train_valid_data_iter, self.__test_data_iter = \
             od.load_data()
 
     def goodness_of_function_optimizer_function(self):
         self.__trainer = gluon.Trainer(
             self.__net.collect_params(),
-            "sgd",
-            {"learning_rate": self.__learning_rate,
-             "momentum": self.__momentum,
-             "wd": self.__wd}
+            "adam",
+            {"learning_rate": self.__learning_rate}
         )
 
     def pick_the_best_function(self):
@@ -97,8 +111,8 @@ class Main(object):
         for epoch in range(self.__epochs):
             train_loss = 0.0
             train_acc = 0.0
-            if epoch > 0 and epoch % self.__learning_rate_decay == 0:
-                self.__trainer.set_learning_rate(self.__trainer.learning_rate * self.__learning_rate_decay)
+            # if epoch > 0 and epoch % self.__learning_rate_period == 0:
+            #     self.__trainer.set_learning_rate(self.__trainer.learning_rate * self.__learning_rate_decay)
 
             for self.__batch_X, self.__batch_y in self.__train_data_iter:
                 self.__batch_X = self.__batch_X.as_in_context(self.__ctx)
@@ -128,6 +142,21 @@ class Main(object):
             prev_time = cur_time
             print(epoch_str + time_str + ", lr " + str(self.__trainer.learning_rate))
 
+    def submission(self):
+        for self.__batch_X, self.__batch_y in self.__test_data_iter:
+            self.__batch_X = self.__batch_X.as_in_context(self.__ctx)
+            self.__batch_y = self.__batch_y.as_in_context(self.__ctx)
+            self.__batch_y_hat = self.__net(self.__batch_X)
+            self.__preds.extend(self.__batch_y_hat.argmax(axis=1).astype(int).asnumpy())
+
+        self.__sorted_ids = list(range(1, len(self.__test_ds) + 1))
+        self.__sorted_ids.sort(key=lambda x: str(x))
+
+        self.__submission_df = pd.DataFrame({"id": self.__sorted_ids, "label": self.__preds})
+        # self.__train_data_iter.synsets 什么含义
+        self.__submission_df["label"] = self.__submission_df["label"].apply(lambda x: self.__train_valid_ds.synsets[x])
+        self.__submission_df.to_csv("submission.csv", index=False)
+
 
 if __name__ == "__main__":
     m = Main(
@@ -137,8 +166,9 @@ if __name__ == "__main__":
         learning_rate=0.1,
         momentum=0.9,
         wd=5e-4,
+        learning_rate_period=20,
         leanring_rate_decay=0.1,
-        epochs=100
+        epochs=50
     )
     m.set_ctx()
     m.function_set()
@@ -146,3 +176,4 @@ if __name__ == "__main__":
     m.goodness_of_function_optimizer_data()
     m.goodness_of_function_optimizer_function()
     m.pick_the_best_function()
+    m.submission()

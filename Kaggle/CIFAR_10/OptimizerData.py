@@ -56,7 +56,7 @@ class OptimizerData(object):
         self.__test_ds = vision.ImageFolderDataset(
             os.path.join(self.__input_path, self.__folder_list[3]), flag=1, transform=transform_test)
 
-        # print(len(self.__train_ds)) 样本个数
+        # print(len(self.__test_ds)) # 样本个数
 
         self.__train_data = gluon.data.DataLoader(
             self.__train_ds, self.__batch_size, shuffle=True, last_batch="keep")
@@ -67,7 +67,10 @@ class OptimizerData(object):
         self.__test_data = gluon.data.DataLoader(
             self.__test_ds, self.__batch_size, shuffle=False, last_batch="keep")
 
-        return self.__train_data, self.__valid_data, self.__train_valid_data, self.__test_data
+        return (
+            self.__train_ds, self.__valid_ds, self.__train_valid_ds, self.__test_ds,
+            self.__train_data, self.__valid_data, self.__train_valid_data, self.__test_data
+        )
 
 
 if __name__ == "__main__":
@@ -77,10 +80,12 @@ if __name__ == "__main__":
 
     train_data, valid_data, train_valid_data, test_data = od.load_data()
 
-    for batch_X, batch_y in train_data:
-        print(batch_X.shape)
-        print(batch_y.shape)
-        break
+    # for batch_X, batch_y in train_data:
+    #     print(batch_X.shape)
+    #     print(batch_y.shape)
+    #     break
+
+    print(len(test_data))
 
 
 
