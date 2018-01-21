@@ -90,7 +90,7 @@ class CnnDemo(object):
         self.__model.fit(self.__train, self.__train_label, epochs=1, batch_size=32)
 
     def model_evaluate(self):
-        loss , accuracy = self.__model.evaluate(self.__test, self.__test_label)
+        loss, accuracy = self.__model.evaluate(self.__test, self.__test_label)
 
         print("test loss: ", loss)
         print("test accuracy: ", accuracy)
