@@ -10,9 +10,9 @@ mx.random.seed(1)
 random.seed(1)
 
 
-class AdagradScratch(object):
+class RmspropScratch(object):
 
-    def __init__(self, *, batch_size, learning_rate, epochs):
+    def __init__(self, *, batch_size, gamma, learning_rate, epochs):
         # data prepare
         self.__num_inputs = 2
         self.__num_examples = 1000
@@ -36,9 +36,9 @@ class AdagradScratch(object):
         self.__train_data_iter = None
 
         # goodness of function optimizer function
-        self.__eps_stable = 1e-7
+        self.__eps_stable = 1e-8
+        self.__gamma = gamma
         self.__learning_rate = learning_rate
-
 
         # pick the best function
         self.__epochs = epochs
@@ -69,10 +69,10 @@ class AdagradScratch(object):
     def goodness_of_function_optimizer_function(self):
         for param, sqr in zip(self.__params, self.__sqrs):
             g = param.grad / self.__batch_size
-            sqr[:] += nd.square(g)
+            # 注意 这里不是 +=
+            sqr[:] = self.__gamma * sqr + (1. - self.__gamma) * nd.square(g)
             div = self.__learning_rate * g / nd.sqrt(sqr + self.__eps_stable)
             param[:] -= div
-
 
     def pick_the_best_function(self):
         for param in self.__params:
@@ -96,7 +96,7 @@ class AdagradScratch(object):
 
 
 if __name__ == "__main__":
-    ags = AdagradScratch(batch_size=10, learning_rate=0.1, epochs=20)
-    ags.data_prepare()
-    ags.goodness_of_function_optimizer_data()
-    ags.pick_the_best_function()
+    rms = RmspropScratch(batch_size=10, gamma=0.9, learning_rate=0.03, epochs=10)
+    rms.data_prepare()
+    rms.goodness_of_function_optimizer_data()
+    rms.pick_the_best_function()
