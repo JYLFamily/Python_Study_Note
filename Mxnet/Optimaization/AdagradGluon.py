@@ -10,7 +10,7 @@ mx.random.seed(1)
 random.seed(1)
 
 
-class GradientDescentGluon(object):
+class AdagradGluon(object):
     def __init__(self, *, batch_size, learning_rate, epochs):
         # data prepare
         self.__num_inputs = 2
@@ -57,9 +57,10 @@ class GradientDescentGluon(object):
 
     def function_set(self):
         self.__net = gluon.nn.HybridSequential()
-        self.__net.add(gluon.nn.Dense(1))
-        self.__net.initialize()
-        self.__net.hybridize()
+        with self.__net.name_scope():
+            self.__net.add(gluon.nn.Dense(1))
+            self.__net.initialize()
+            self.__net.hybridize()
 
     def goodness_of_function_loss_function(self):
         self.__loss = gluon.loss.L2Loss()
@@ -68,12 +69,15 @@ class GradientDescentGluon(object):
         self.__train_data_iter = gluon.data.DataLoader(self.__data_set, self.__batch_size, shuffle=True)
 
     def goodness_of_function_optimizer_function(self):
-        self.__trainer = gluon.Trainer(self.__net.collect_params(), "sgd", {"learning_rate": self.__learning_rate})
+        self.__trainer = gluon.Trainer(
+            self.__net.collect_params(),
+            "adagrad",
+            {"learning_rate": self.__learning_rate}
+        )
 
     def pick_the_best_function(self):
         for e in list(range(self.__epochs)):
             train_loss = 0.
-            self.__trainer.set_learning_rate(self.__trainer.learning_rate * 0.1) if e > 2 else self.__trainer
             for self.__batch_X, self.__batch_y in self.__train_data_iter:
                 with autograd.record():
                     self.__batch_y_hat = self.__net(self.__batch_X)
@@ -88,10 +92,10 @@ class GradientDescentGluon(object):
 
 
 if __name__ == "__main__":
-    gdg = GradientDescentGluon(batch_size=1, learning_rate=0.2, epochs=5)
-    gdg.data_prepare()
-    gdg.function_set()
-    gdg.goodness_of_function_loss_function()
-    gdg.goodness_of_function_optimizer_data()
-    gdg.goodness_of_function_optimizer_function()
-    gdg.pick_the_best_function()
+    adg = AdagradGluon(batch_size=10, learning_rate=0.2, epochs=5)
+    adg.data_prepare()
+    adg.function_set()
+    adg.goodness_of_function_loss_function()
+    adg.goodness_of_function_optimizer_data()
+    adg.goodness_of_function_optimizer_function()
+    adg.pick_the_best_function()

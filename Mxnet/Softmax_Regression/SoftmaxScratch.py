@@ -94,5 +94,5 @@ class SoftmaxScratch(object):
 if __name__ == "__main__":
     ss = SoftmaxScratch(batch_size=256, learning_rate=0.1, epochs=5)
     ss.data_prepare()
-    ss.goodness_of_function_optimizer_data()
-    ss.train_model()
+    # ss.goodness_of_function_optimizer_data()
+    # ss.train_model()

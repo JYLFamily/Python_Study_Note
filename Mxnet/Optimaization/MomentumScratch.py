@@ -12,7 +12,7 @@ random.seed(1)
 
 class MomentumScratch(object):
 
-    def __init__(self, *, batch_size, learning_rate, epochs):
+    def __init__(self, *, batch_size, learning_rate, momentum, epochs):
         # data prepare
         self.__num_inputs = 2
         self.__num_examples = 1000
@@ -21,6 +21,7 @@ class MomentumScratch(object):
         self.__w = None
         self.__b = None
         self.__params = None
+        self.__vs = None
 
         self.__X = None
         self.__y = None
@@ -36,6 +37,8 @@ class MomentumScratch(object):
 
         # goodness of function optimizer function
         self.__learning_rate = learning_rate
+        ## gamma
+        self.__momentum = momentum
 
         # pick the best function
         self.__epochs = epochs
@@ -52,6 +55,7 @@ class MomentumScratch(object):
         self.__w = nd.random_normal(shape=(2, 1), scale=0.01)
         self.__b = nd.random_normal(shape=(1, 1), scale=0.01)
         self.__params = [self.__w, self.__b]
+        self.__vs = []
 
     def function_set(self):
         return nd.dot(self.__batch_X, self.__w) + self.__b
@@ -63,12 +67,14 @@ class MomentumScratch(object):
         self.__train_data_iter = gluon.data.DataLoader(self.__data_set, self.__batch_size, shuffle=True)
 
     def goodness_of_function_optimizer_function(self):
-        for param in self.__params:
-            param[:] = param - self.__learning_rate / self.__batch_size * param.grad
+        for param, v in zip(self.__params, self.__vs):
+            v[:] = self.__momentum * v + self.__learning_rate * param.grad / self.__batch_size
+            param[:] -= v
 
     def pick_the_best_function(self):
         for param in self.__params:
             param.attach_grad()
+            self.__vs.append(param.zeros_like())
 
         for e in list(range(self.__epochs)):
             train_loss = 0.
@@ -88,7 +94,7 @@ class MomentumScratch(object):
 
 
 if __name__ == "__main__":
-    ms = MomentumScratch(batch_size=10, learning_rate=0.2, epochs=5)
+    ms = MomentumScratch(batch_size=10, learning_rate=0.2, momentum=0.95, epochs=5)
     ms.data_prepare()
     ms.goodness_of_function_optimizer_data()
     ms.pick_the_best_function()
