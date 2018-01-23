@@ -151,39 +151,39 @@ class Main(object):
 
             self.__oof_test_linear = np.hstack(tuple(map(get_oof_test, list(oof_test_linear_zip))))
 
-            # self.__train_all = np.hstack((
-            #     self.__train_tree,
-            #     self.__train_pca_component,
-            #     self.__train_tsne_component,
-            #     self.__oof_train_tree,
-            #     self.__oof_train_linear
-            # ))
-            #
-            # self.__test_all = np.hstack((
-            #     self.__test_tree,
-            #     self.__test_pca_component,
-            #     self.__test_tsne_component,
-            #     self.__oof_test_tree,
-            #     self.__oof_test_linear
-            # ))
-
             self.__train_all = np.hstack((
-                self.__train_tree
-                , self.__train_pca_component
-                , self.__train_tsne_component
-                , self.__oof_train_tree
-                , self.__oof_train_linear
-                , self.__train_output_layer
+                self.__train_tree,
+                # self.__train_pca_component,
+                # self.__train_tsne_component,
+                self.__oof_train_tree,
+                self.__oof_train_linear
             ))
 
             self.__test_all = np.hstack((
-                self.__test_tree
-                , self.__test_pca_component
-                , self.__test_tsne_component
-                , self.__oof_test_tree
-                , self.__oof_test_linear
-                , self.__test_output_layer
+                self.__test_tree,
+                # self.__test_pca_component,
+                # self.__test_tsne_component,
+                self.__oof_test_tree,
+                self.__oof_test_linear
             ))
+
+            # self.__train_all = np.hstack((
+            #     self.__train_tree
+            #     , self.__train_pca_component
+            #     , self.__train_tsne_component
+            #     , self.__oof_train_tree
+            #     , self.__oof_train_linear
+            #     , self.__train_output_layer
+            # ))
+            #
+            # self.__test_all = np.hstack((
+            #     self.__test_tree
+            #     , self.__test_pca_component
+            #     , self.__test_tsne_component
+            #     , self.__oof_test_tree
+            #     , self.__oof_test_linear
+            #     , self.__test_output_layer
+            # ))
             logging.info("stage one compelet.")
         except Exception as e:
             logging.exception(e)
@@ -192,7 +192,10 @@ class Main(object):
     def stage_two(self, model):
         try:
             model.fit(self.__train_all, self.__train_label)
-            print("AUC: %.4f" % roc_auc_score(self.__test_label, model.predict_proba(self.__test_all)[:, 1]))
+            print("Training Set AUC: %.4f" %
+                  roc_auc_score(self.__train_label, model.predict_proba(self.__train_all)[:, 1]))
+            print("Testing Set AUC: %.4f" %
+                  roc_auc_score(self.__test_label, model.predict_proba(self.__test_all)[:, 1]))
             logging.info("stage two compelet.")
         except Exception as e:
             logging.exception(e)
