@@ -12,6 +12,7 @@ from xgboost import XGBClassifier
 from sklearn.metrics import roc_auc_score
 from Project.LostRepair.StackingAndHiddenLayerOutputV1.FeatureEngineering import FeatureEngineering
 from Project.LostRepair.StackingAndHiddenLayerOutputV1.NnGenerateFeature import NnGenerateFeature
+from Project.LostRepair.StackingAndHiddenLayerOutputV1.DrGenerateFeature import DrGenerateFeature
 
 
 class Main(object):
@@ -35,6 +36,8 @@ class Main(object):
 
         # nn generate feature
         self.__train_output_layer, self.__test_output_layer = None, None
+        self.__train_pca_component, self.__test_pca_component = None, None
+        self.__train_tsne_component, self.__test_tsne_component = None, None
 
         self.__skf = None
         self.__cv = cv
@@ -79,6 +82,15 @@ class Main(object):
                                                             cv=self.__cv, random_state=self.__random_state)
         )
         logging.info("nn generate feature complete")
+
+    def dr_generate_feature(self):
+        self.__train_pca_component, self.__test_pca_component = (
+            DrGenerateFeature().get_pca_component(train=self.__train_linear, test=self.__test_linear)
+        )
+        self.__train_tsne_component, self.__test_tsne_component = (
+            DrGenerateFeature().get_tsne_component(train=self.__train_linear, test=self.__test_linear)
+        )
+        logging.info("dr generate feature complete")
 
     def stage_one(self, *, tree_model_list, linear_model_list):
         try:
@@ -139,12 +151,39 @@ class Main(object):
 
             self.__oof_test_linear = np.hstack(tuple(map(get_oof_test, list(oof_test_linear_zip))))
 
-            self.__train_all = np.hstack((self.__train_tree, self.__train_output_layer,
-                                          self.__oof_train_tree, self.__oof_train_linear))
+            # self.__train_all = np.hstack((
+            #     self.__train_tree,
+            #     self.__train_pca_component,
+            #     self.__train_tsne_component,
+            #     self.__oof_train_tree,
+            #     self.__oof_train_linear
+            # ))
+            #
+            # self.__test_all = np.hstack((
+            #     self.__test_tree,
+            #     self.__test_pca_component,
+            #     self.__test_tsne_component,
+            #     self.__oof_test_tree,
+            #     self.__oof_test_linear
+            # ))
 
-            self.__test_all = np.hstack((self.__test_tree, self.__test_output_layer,
-                                         self.__oof_test_tree, self.__oof_test_linear))
+            self.__train_all = np.hstack((
+                self.__train_tree
+                , self.__train_pca_component
+                , self.__train_tsne_component
+                , self.__oof_train_tree
+                , self.__oof_train_linear
+                , self.__train_output_layer
+            ))
 
+            self.__test_all = np.hstack((
+                self.__test_tree
+                , self.__test_pca_component
+                , self.__test_tsne_component
+                , self.__oof_test_tree
+                , self.__oof_test_linear
+                , self.__test_output_layer
+            ))
             logging.info("stage one compelet.")
         except Exception as e:
             logging.exception(e)
@@ -167,6 +206,7 @@ if __name__ == "__main__":
     m.train_test_split()
     m.feature_engineering()
     m.nn_generate_feature()
+    m.dr_generate_feature()
 
     # tree model
     XGB_tree = XGBClassifier()

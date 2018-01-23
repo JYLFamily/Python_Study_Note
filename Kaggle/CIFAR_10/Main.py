@@ -163,7 +163,7 @@ if __name__ == "__main__":
         input_path="D:\\Code\\kaggle\\cifar10\\train_valid_test",
         folder_list=["train", "valid", "train_valid", "test"],
         batch_size=128,
-        learning_rate=0.1,
+        learning_rate=0.2,
         momentum=0.9,
         wd=5e-4,
         learning_rate_period=20,
