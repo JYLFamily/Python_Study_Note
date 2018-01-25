@@ -60,10 +60,10 @@ class XgbTry(object):
 
 
 if __name__ == "__main__":
-    param = {'max_depth':2,
-             'eta':1,
-             'silent':0,
-             'objective':'binary:logistic'}
+    param = {'max_depth': 2,
+             'eta': 1,
+             'silent': 0,
+             'objective': 'binary:logistic'}
     num_round = 2
 
     xgb_try = XgbTry(input_path='C:\\Users\\YL\\Desktop\\', param=param, num_round=num_round)

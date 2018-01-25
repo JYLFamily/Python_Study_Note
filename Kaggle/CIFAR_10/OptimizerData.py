@@ -20,13 +20,12 @@ class OptimizerData(object):
     def load_data(self):
         def transform_train(data, label):
             im = data.astype("float32") / 255
-            auglist = image.CreateAugmenter(data_shape=(3, 32, 32), resize=0,
-                                            rand_crop=False, rand_resize=False, rand_mirror=True,
-                                            mean=np.array([0.4914, 0.4822, 0.4465]),
-                                            std=np.array([0.2023, 0.1994, 0.2010]),
-                                            brightness=0, contrast=0,
-                                            saturation=0, hue=0,
-                                            pca_noise=0, rand_gray=0, inter_method=2)
+            auglist = image.CreateAugmenter(data_shape=(3, 32, 32),
+                                            resize=0,
+                                            rand_crop=True, rand_resize=True, rand_gray=0.5,  rand_mirror=True,
+                                            mean=np.array([0., 0., 0.]), std=np.array([1, 1, 1]),
+                                            brightness=0.5, contrast=0.5, saturation=0.5,
+                                            hue=0.5, pca_noise=0, inter_method=2)
             for aug in auglist:
                 im = aug(im)
             # 将数据格式从"高*宽*通道"改为"通道*高*宽"。
@@ -38,8 +37,8 @@ class OptimizerData(object):
         def transform_test(data, label):
             im = data.astype("float32") / 255
             auglist = image.CreateAugmenter(data_shape=(3, 32, 32),
-                                            mean=np.array([0.4914, 0.4822, 0.4465]),
-                                            std=np.array([0.2023, 0.1994, 0.2010]))
+                                            mean=np.array([0., 0., 0.]),
+                                            std=np.array([1, 1, 1]))
             for aug in auglist:
                 im = aug(im)
             im = nd.transpose(im, (2, 0, 1))

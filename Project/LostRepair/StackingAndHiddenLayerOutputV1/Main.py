@@ -6,10 +6,11 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import StratifiedKFold
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.feature_selection import RFE
 from xgboost import XGBClassifier
 from sklearn.metrics import roc_auc_score
+from Project.LostRepair.StackingAndHiddenLayerOutputV1.XgbWrapper import XgbWrapper
 from Project.LostRepair.StackingAndHiddenLayerOutputV1.FeatureEngineering import FeatureEngineering
 from Project.LostRepair.StackingAndHiddenLayerOutputV1.NnGenerateFeature import NnGenerateFeature
 from Project.LostRepair.StackingAndHiddenLayerOutputV1.DrGenerateFeature import DrGenerateFeature
@@ -153,7 +154,7 @@ class Main(object):
 
             self.__train_all = np.hstack((
                 self.__train_tree,
-                # self.__train_pca_component,
+                self.__train_pca_component,
                 # self.__train_tsne_component,
                 self.__oof_train_tree,
                 self.__oof_train_linear
@@ -161,7 +162,7 @@ class Main(object):
 
             self.__test_all = np.hstack((
                 self.__test_tree,
-                # self.__test_pca_component,
+                self.__test_pca_component,
                 # self.__test_tsne_component,
                 self.__oof_test_tree,
                 self.__oof_test_linear
@@ -208,15 +209,17 @@ if __name__ == "__main__":
 
     m.train_test_split()
     m.feature_engineering()
-    m.nn_generate_feature()
+    # m.nn_generate_feature()
     m.dr_generate_feature()
 
     # tree model
     XGB_tree = XGBClassifier()
     RF = RandomForestClassifier()
+    GBDT = GradientBoostingClassifier()
+
     # linear model
     LR = LogisticRegression()
-    XGB_linear = XGBClassifier()
+    XGB_linear = XgbWrapper()
 
-    m.stage_one(tree_model_list=[XGB_tree, RF], linear_model_list=[LR, XGB_linear])
-    m.stage_two(RFE(XGB_tree))
+    m.stage_one(tree_model_list=[XGB_tree, RF], linear_model_list=[LR])
+    m.stage_two(XGB_linear)

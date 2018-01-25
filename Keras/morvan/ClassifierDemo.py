@@ -12,7 +12,6 @@ np.random.seed(9)
 
 
 class ClassifierDemo(object):
-
     def __init__(self):
         self.__train = None
         self.__train_label = None
