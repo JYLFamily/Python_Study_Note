@@ -4,16 +4,20 @@ import numpy as np
 import xgboost as xgb
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import roc_auc_score
 
 
-class XgbWrapper(object):
+class XgbWrapper():
 
-    def __init__(self, *, booster="gblinear", objective="binary:logistic"):
-        self.__params = {"booster": booster, "objective":objective}
+    def __init__(self, booster="gblinear", objective="binary:logistic"):
+        self.__params = {"booster": booster, "objective": objective}
         self.__bst = None
 
     def fit(self, train, train_label):
         self.__bst = xgb.train(self.__params, xgb.DMatrix(data=train, label=train_label))
+
+    def predict(self, test):
+        return self.__bst.predict(xgb.DMatrix(data=test)).reshape((-1, 1))
 
     def predict_proba(self, test):
         return np.hstack((
@@ -32,4 +36,4 @@ if __name__ == "__main__":
     # XgbWrapper
     xgb_linear = XgbWrapper()
     xgb_linear.fit(train, train_label)
-    print(xgb_linear.predict_proba(test))
+    print(xgb_linear.predict(test))

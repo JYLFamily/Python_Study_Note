@@ -12,6 +12,7 @@ from sklearn.naive_bayes import GaussianNB
 from xgboost import XGBClassifier
 from mlxtend.classifier import StackingCVClassifier
 from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import roc_auc_score
 
 
 class Main(object):
@@ -81,13 +82,17 @@ class Main(object):
         self.__grid = GridSearchCV(
             estimator=self.__sclf,
             param_grid=self.__params,
+            scoring="roc_auc",
+            n_jobs=4,
             cv=5,
             refit=True
         )
 
         self.__grid.fit(self.__train, self.__train_label)
         print("Best parameters: %s" % self.__grid.best_params_)
-        print("Accuracy: %.4f" % self.__grid.best_score_)
+        print("Training Auc: %.4f" % self.__grid.best_score_)
+        print("Testing Auc: %.4f" %
+              roc_auc_score(self.__test_label, self.__grid.predict_proba(self.__test)[:, 1]))
 
 
 if __name__ == "__main__":
