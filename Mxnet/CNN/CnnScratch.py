@@ -25,7 +25,7 @@ class CnnScratch(object):
 
         # goodness of function loss function
 
-        # goodness_of_function_optimizer_data
+        # goodness of function optimizer data
         self.__batch_size = batch_size
         self.__train_data_iter = None
         self.__test_data_iter = None
@@ -125,7 +125,6 @@ class CnnScratch(object):
             for self.__batch_X, self.__batch_y in self.__train_data_iter:
                 self.__batch_X = self.__batch_X.reshape((-1, 1, 28, 28)).as_in_context(self.__ctx)
                 self.__batch_y = self.__batch_y.reshape((-1, 1)).as_in_context(self.__ctx)
-                print(self.__batch_X)
                 with autograd.record():
                     self.__batch_y_hat = self.function_set()
                     loss = self.goodness_of_function_loss_function()
