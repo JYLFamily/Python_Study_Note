@@ -20,6 +20,7 @@ class LoadData(object):
             self.__corpus_chars = f.read()
         # 所有系统的换行符都能够 replace
         self.__corpus_chars = self.__corpus_chars.replace("\r", " ").replace("\n", " ").replace(os.linesep, " ")
+        self.__corpus_chars = self.__corpus_chars[0:20000]
 
     def set_get_dict(self):
         """得到字典 返回字典"""
@@ -28,7 +29,7 @@ class LoadData(object):
         # "墟": 0 字典
         self.__char_to_idx = dict([(char, i) for i, char in enumerate(idx_to_char)])
 
-        return self.__char_to_idx
+        return self.__char_to_idx, idx_to_char
 
     def set_get_index(self):
         self.__corpus_indices = [self.__char_to_idx[char] for char in self.__corpus_chars]
