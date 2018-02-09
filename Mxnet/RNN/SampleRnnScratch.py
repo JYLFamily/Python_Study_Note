@@ -129,7 +129,7 @@ class SampleRnnScratch(object):
         for param in self.__params:
             param.attach_grad()
 
-        def _grad_clipping(params, theta, ctx):
+        def __grad_clipping(params, theta, ctx):
             if theta is not None:
                 norm = nd.array([0.0], ctx)
                 for p in params:
@@ -155,7 +155,7 @@ class SampleRnnScratch(object):
                     loss = self.goodness_of_loss_function()
                 loss.backward()
 
-                _grad_clipping(self.__params, self.__clipping_theta, self.__ctx)
+                __grad_clipping(self.__params, self.__clipping_theta, self.__ctx)
                 self.goodness_of_function_optimizer_function()
 
                 train_loss += nd.sum(loss).asscalar()
@@ -187,9 +187,9 @@ if __name__ == "__main__":
         hidden_dim=256,
         batch_size=32,
         num_steps=35,
-        learning_rate=0.2,
+        learning_rate=0.001,
         epochs=300,
-        clipping_theta=1,
+        clipping_theta=5,
         seqs=["分开"]
     )
     srs.set_ctx()

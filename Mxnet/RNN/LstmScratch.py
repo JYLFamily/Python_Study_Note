@@ -1,3 +1,5 @@
+# coding:utf-8
+
 #  coding:utf-8
 
 import math
@@ -25,12 +27,14 @@ class GruScratch(object):
         # 隐藏层数目
         self.__hidden_dim = hidden_dim
         # 隐藏层
-        # 重置门
-        self.__W_xr, self.__W_hr, self.__b_r = [None for _ in range(3)]
-        # 更新门
-        self.__W_xz, self.__W_hz, self.__b_z = [None for _ in range(3)]
-        # 候选隐含状态
-        self.__W_xh, self.__W_hh, self.__b_h = [None for _ in range(3)]
+        # 输入门
+        self.__W_xi, self.__W_hi, self.__b_i = [None for _ in range(3)]
+        # 遗忘门
+        self.__W_xf, self.__W_hf, self.__b_f = [None for _ in range(3)]
+        # 输出门
+        self.__W_xo, self.__W_ho, self.__b_o = [None for _ in range(3)]
+        # 候选细胞
+        self.__W_xc, self.__W_hc, self.__b_c = [None for _ in range(3)]
         # 输出层
         self.__W_hy, self.__b_y = [None for _ in range(2)]
 
@@ -54,6 +58,7 @@ class GruScratch(object):
         self.__batch_y = None
         self.__batch_y_hat = None
         self.__state = None
+        self.__C = None
         self.__clipping_theta = clipping_theta
 
         # ------ best function predict ---------------------
@@ -80,34 +85,41 @@ class GruScratch(object):
         output_dim = self.__vocab_size
         std = .001
         # 隐含层
-        # 重置门
-        self.__W_xr = nd.random_normal(std, shape=(input_dim, hidden_dim), ctx=self.__ctx)
-        self.__W_hr = nd.random_normal(std, shape=(hidden_dim, hidden_dim), ctx=self.__ctx)
-        self.__b_r = nd.zeros(hidden_dim, ctx=self.__ctx)
-        # 更新门
-        self.__W_xz = nd.random_normal(std, shape=(input_dim, hidden_dim), ctx=self.__ctx)
-        self.__W_hz = nd.random_normal(std, shape=(hidden_dim, hidden_dim), ctx=self.__ctx)
-        self.__b_z = nd.zeros(hidden_dim, ctx=self.__ctx)
-        # 候选隐含状态
-        self.__W_xh = nd.random_normal(std, shape=(input_dim, hidden_dim), ctx=self.__ctx)
-        self.__W_hh = nd.random_normal(std, shape=(hidden_dim, hidden_dim), ctx=self.__ctx)
-        self.__b_h = nd.zeros(hidden_dim, ctx=self.__ctx)
+        # 输入门
+        self.__W_xi = nd.random_normal(std, shape=(input_dim, hidden_dim), ctx=self.__ctx)
+        self.__W_hi = nd.random_normal(std, shape=(hidden_dim, hidden_dim), ctx=self.__ctx)
+        self.__b_i = nd.zeros(hidden_dim, ctx=self.__ctx)
+        # 遗忘门
+        self.__W_xf = nd.random_normal(std, shape=(input_dim, hidden_dim), ctx=self.__ctx)
+        self.__W_hf = nd.random_normal(std, shape=(hidden_dim, hidden_dim), ctx=self.__ctx)
+        self.__b_f = nd.zeros(hidden_dim, ctx=self.__ctx)
+        # 输出门
+        self.__W_xo = nd.random_normal(std, shape=(input_dim, hidden_dim), ctx=self.__ctx)
+        self.__W_ho = nd.random_normal(std, shape=(hidden_dim, hidden_dim), ctx=self.__ctx)
+        self.__b_o = nd.zeros(hidden_dim, ctx=self.__ctx)
+        # 候选记忆细胞
+        self.__W_xc = nd.random_normal(std, shape=(input_dim, hidden_dim), ctx=self.__ctx)
+        self.__W_hc = nd.random_normal(std, shape=(hidden_dim, hidden_dim), ctx=self.__ctx)
+        self.__b_c = nd.zeros(hidden_dim, ctx=self.__ctx)
         # 输出层
         self.__W_hy = nd.random_normal(std, shape=(hidden_dim, output_dim), ctx=self.__ctx)
         self.__b_y = nd.zeros(output_dim, ctx=self.__ctx)
 
-        self.__params = [self.__W_xr, self.__W_hr, self.__b_r,
-                         self.__W_xz, self.__W_hz, self.__b_z,
-                         self.__W_xh, self.__W_hh, self.__b_h,
+        self.__params = [self.__W_xi, self.__W_hi, self.__b_i,
+                         self.__W_xi, self.__W_hi, self.__b_i,
+                         self.__W_xi, self.__W_hi, self.__b_i,
                          self.__W_hy, self.__b_y]
 
     def function_set(self):
         self.__batch_y_hat = []
         for X in self.__batch_X:
-            R = nd.sigmoid(nd.dot(X, self.__W_xr) + nd.dot(self.__state, self.__W_hr) + self.__b_r)
-            Z = nd.sigmoid(nd.dot(X, self.__W_xz) + nd.dot(self.__state, self.__W_hz) + self.__b_z)
-            H_tilda = nd.tanh(nd.dot(X, self.__W_xh) + R * nd.dot(self.__state, self.__W_hh) + self.__b_h)
-            self.__state = Z * self.__state + (1 - Z) * H_tilda
+            I = nd.sigmoid(nd.dot(X, self.__W_xi) + nd.dot(self.__state, self.__W_hi) + self.__b_i)
+            F = nd.sigmoid(nd.dot(X, self.__W_xf) + nd.dot(self.__state, self.__W_hf) + self.__b_f)
+            O = nd.sigmoid(nd.dot(X, self.__W_xo) + nd.dot(self.__state, self.__W_ho) + self.__b_o)
+            C_tilda = nd.tanh(nd.dot(X, self.__W_xc) + nd.dot(self.__state, self.__W_hc) + self.__b_c)
+            # 注意这里 C 同 state 一样
+            self.__C = F * self.__C + I * C_tilda
+            self.__state = O * nd.tanh(self.__C)
             self.__batch_y_hat.append(nd.dot(self.__state, self.__W_hy) + self.__b_y)
         self.__batch_y_hat = nd.concat(*self.__batch_y_hat, dim=0)
 
@@ -120,7 +132,7 @@ class GruScratch(object):
 
     def goodness_of_function_optimizer_function(self):
         for param in self.__params:
-            param[:] = param - self.__learning_rate * param.grad
+            param[:] = param - self.__learning_rate / self.__batch_size * param.grad
 
     def goodness_of_function_optimizer_data(self):
         """相邻批量采样"""
@@ -154,6 +166,7 @@ class GruScratch(object):
         for e in range(1, self.__epochs + 1):
             train_loss, num_examples = 0, 0
             self.__state = nd.zeros(shape=(self.__batch_size, self.__hidden_dim), ctx=self.__ctx)
+            self.__C = nd.zeros(shape=(self.__batch_size, self.__hidden_dim), ctx=self.__ctx)
 
             for self.__batch_X, self.__batch_y in self.goodness_of_function_optimizer_data():
                 # batch_X list len(list)==num_steps list 中每一个元素是一个时刻的 batch_size × 字典长度
@@ -179,7 +192,9 @@ class GruScratch(object):
         for prefix in self.__seqs:
             prefix = prefix.lower()
             self.__state = nd.zeros(shape=(1, self.__hidden_dim), ctx=self.__ctx)
+            self.__C = nd.zeros(shape=(1, self.__hidden_dim), ctx=self.__ctx)
             output = [self.__char_to_idx[prefix[0]]]
+
             for i in range(100 + len(prefix)):
                 self.__batch_X = nd.array([output[-1]], ctx=self.__ctx)
                 self.__batch_X = nd.one_hot(self.__batch_X, self.__vocab_size)
@@ -199,7 +214,7 @@ if __name__ == "__main__":
         hidden_dim=256,
         batch_size=32,
         num_steps=35,
-        learning_rate=0.002,
+        learning_rate=0.02,
         epochs=300,
         clipping_theta=1,
         seqs=["分开"]
@@ -208,5 +223,3 @@ if __name__ == "__main__":
     gs.data_prepare()
     gs.pick_the_best_function()
     gs.best_function_predict()
-
-
