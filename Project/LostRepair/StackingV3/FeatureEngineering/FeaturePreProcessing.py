@@ -10,10 +10,11 @@ from Project.LostRepair.StackingV3.FeatureEngineering.FeatureGeneration import *
 
 
 def fpp_categorical_missing_value_linear_model(train_categorical, test_categorical):
+    columns_header = train_categorical.columns
     missing_value_over_half_train = {}
     missing_value_over_half_test = {}
 
-    for col in train_categorical.columns:
+    for col in columns_header:
         # 如果没有缺失值
         if (np.sum(train_categorical[col].isnull()) + np.sum(test_categorical[col])) == 0:
             continue
@@ -43,14 +44,13 @@ def fpp_categorical_missing_value_tree_model():
 
 
 def fpp_categorical_linear_model(train_categorical, test_categorical):
-    columns_name_categorical = train_categorical.columns
+    columns_header_categorical = train_categorical.columns
     train_categorical_distribution = {}
     test_categorical_distribution = {}
-    train_categorical_two_level = {}
-    test_categorical_two_level = {}
+    train_categorical_unique_count = []
 
     # 得到分类变量分布特征
-    for col in columns_name_categorical:
+    for col in columns_header_categorical:
         encoding = train_categorical.groupby(col).size() / train_categorical.shape[0]
         train_categorical_distribution[col + "Distribution"] = train_categorical[col].map(encoding)
         test_categorical_distribution[col + "Distribution"] = test_categorical[col].map(encoding)
@@ -59,16 +59,16 @@ def fpp_categorical_linear_model(train_categorical, test_categorical):
     test_categorical_distribution = pd.DataFrame(test_categorical_distribution)
 
     # 分类变量 one hot encoder
-    for col in columns_name_categorical:
-        if len(np.unique(train_categorical[col])) == 2:
-            train_categorical_two_level[col] = train_categorical[col]
-            test_categorical_two_level[col] = test_categorical[col]
-            train_categorical.drop(col, axis=1, inplace=True)
-            test_categorical.drop(col, axis=1, inplace=True)
-
+    for col in columns_header_categorical:
+        train_categorical_unique_count.append(len(np.unique(train_categorical[col])))
+    # one hot encoder 会生成冗余变量 , 删掉
     ohc = OneHotEncoder(sparse=False).fit(train_categorical)
-    train_categorical_new = np.hstack((ohc.transform(train_categorical), pd.DataFrame(train_categorical_two_level).values))
-    test_categorical_new = np.hstack((ohc.transform(test_categorical), pd.DataFrame(test_categorical_two_level).values))
+    train_categorical_new = (
+        np.delete(ohc.transform(train_categorical), np.array(train_categorical_unique_count).cumsum() - 1, axis=1)
+    )
+    test_categorical_new = (
+        np.delete(ohc.transform(test_categorical), np.array(train_categorical_unique_count).cumsum() - 1, axis=1)
+    )
 
     return train_categorical_new, test_categorical_new, train_categorical_distribution.values, test_categorical_distribution.values
 

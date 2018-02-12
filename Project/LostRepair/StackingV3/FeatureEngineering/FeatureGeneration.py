@@ -42,11 +42,11 @@ def fg_categorical_categorical(train_categorical, test_categorical):
 def fg_categorical_numeric(train_categorical, train_numeric, test_categorical, test_numeric):
     train = pd.concat([train_categorical, train_numeric], axis=1)
     test = pd.concat([test_categorical, test_numeric], axis=1)
-    columns_name_categorical = train_categorical.columns
-    columns_name_numeric = train_numeric.columns
+    columns_header_categorical = train_categorical.columns
+    columns_header_numeric = train_numeric.columns
 
-    for cate_col in columns_name_categorical:
-        for numer_col in columns_name_numeric:
+    for cate_col in columns_header_categorical:
+        for numer_col in columns_header_numeric:
             for operator_name, operator_function in zip(["max", "median", "min"], [np.max, np.median, np.min]):
                 # train
                 name = cate_col + "G" + numer_col + "U" + operator_name

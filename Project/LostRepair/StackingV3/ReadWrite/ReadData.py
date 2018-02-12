@@ -17,11 +17,11 @@ class ReadData(object):
         self.__train, self.__test, self.__train_label, self.__test_label = [None for _ in range(4)]
 
     def get_train_test(self):
-        self.__X = self.__X.loc[(np.logical_not(self.__y is np.nan)), :]
-        self.__y = self.__y[np.logical_not(self.__y is np.nan)]
+        self.__X = self.__X.loc[self.__y.notnull().squeeze(), :]
+        self.__y = self.__y.loc[self.__y.notnull().squeeze(), :]
 
         self.__train, self.__test, self.__train_label, self.__test_label = train_test_split(
             self.__X, self.__y, test_size=self.__test_size, random_state=self.__random_state
         )
 
-        return self.__train, self.__test, self.__train_label, self.__test_label
+        return self.__train, self.__test, self.__train_label.values, self.__test_label.values
