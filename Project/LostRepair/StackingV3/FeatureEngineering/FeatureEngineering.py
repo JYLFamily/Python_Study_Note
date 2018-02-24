@@ -5,6 +5,7 @@ from Project.LostRepair.StackingV3.FeatureEngineering.FeaturePreProcessing impor
 from Project.LostRepair.StackingV3.FeatureEngineering.FeatureGeneration import *
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_auc_score
+from Project.LostRepair.StackingV3.Metric.Metrics import ar_ks
 
 
 class FeatureEngineering(object):
@@ -103,30 +104,32 @@ if __name__ == "__main__":
     # print(np.unique(y.squeeze(), return_counts=True))
 
     train, test, train_label, test_label = train_test_split(X, y, test_size=0.2, shuffle=True, random_state=9)
-    train_label = train_label.values
-    test_label = test_label.values
+    train_label = train_label.values.reshape((-1, ))
+    test_label = test_label.values.reshape((-1, ))
     train_linear_model, test_linear_model = FeatureEngineering.fe_linear_model(
         train=train,
         test=test,
         categorical_feature=["isSameLocation", "phoneCallLocation"],
         numeric_feature=["phoneCallTimesRation", "workTimeRatio"]
     )
-
+    lr = LogisticRegression()
+    lr.fit(train_linear_model, train_label)
+    ar_ks(pd.Series(lr.predict_proba(test_linear_model)[:, 1]), pd.Series(test_label))
     # 以下实现的是一个简单的 lr "随机森林"版 , 能够缓解但是还是不能解决过拟合的问题
-    train_auc = {}
-    test_auc = {}
-    for i in range(15):
-        # [0, train_linear_model.shape[0]) 中随机生成 size 个 int , 有重复
-        sample = np.random.randint(0, train_linear_model.shape[0], size=int(train_linear_model.shape[0] * 0.6))
-        col = np.random.randint(0, train_linear_model.shape[1], size=5)
-        # train_linear_model[sample, :][:, col] 取子 Array
-        # train_linear_model[[], []] 两个 list 必须等长 , 取出的元素行、列位置一一对应
-        # C 还不是 lambda
-        # Like in support vector machines, smaller values specify stronger regularization.
-        lr = LogisticRegression().fit(train_linear_model[sample, :][:, col], train_label[sample])
-        train_auc[str(i)] = lr.predict_proba(train_linear_model[:, col])[:, 1]
-        test_auc[str(i)] = lr.predict_proba(test_linear_model[:, col])[:, 1]
-
-    print(roc_auc_score(train_label, np.mean(pd.DataFrame(train_auc).values, axis=1)))
-    print(roc_auc_score(test_label, np.mean(pd.DataFrame(test_auc).values, axis=1)))
+    # train_auc = {}
+    # test_auc = {}
+    # for i in range(15):
+    #     # [0, train_linear_model.shape[0]) 中随机生成 size 个 int , 有重复
+    #     sample = np.random.randint(0, train_linear_model.shape[0], size=int(train_linear_model.shape[0] * 0.6))
+    #     col = np.random.randint(0, train_linear_model.shape[1], size=5)
+    #     # train_linear_model[sample, :][:, col] 取子 Array
+    #     # train_linear_model[[], []] 两个 list 必须等长 , 取出的元素行、列位置一一对应
+    #     # C 还不是 lambda
+    #     # Like in support vector machines, smaller values specify stronger regularization.
+    #     lr = LogisticRegression().fit(train_linear_model[sample, :][:, col], train_label[sample])
+    #     train_auc[str(i)] = lr.predict_proba(train_linear_model[:, col])[:, 1]
+    #     test_auc[str(i)] = lr.predict_proba(test_linear_model[:, col])[:, 1]
+    #
+    # print(roc_auc_score(train_label, np.mean(pd.DataFrame(train_auc).values, axis=1)))
+    # print(roc_auc_score(test_label, np.mean(pd.DataFrame(test_auc).values, axis=1)))
 
