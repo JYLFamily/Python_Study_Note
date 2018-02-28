@@ -58,7 +58,7 @@ def fg_categorical_numeric(train_categorical, train_numeric, test_categorical, t
                 test_temp.columns = [cate_col, name]
                 test_numeric[name] = test.merge(test_temp, left_on=[cate_col], right_on=[cate_col], how="left")[name]
 
-    return train_numeric.values, test_numeric.values
+    return train_numeric, test_numeric
 
 
 def fg_numeric_numeric():

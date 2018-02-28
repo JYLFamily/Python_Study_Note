@@ -3,6 +3,7 @@
 import numpy as np
 from Project.LostRepair.StackingV3.FeatureEngineering.FeaturePreProcessing import *
 from Project.LostRepair.StackingV3.FeatureEngineering.FeatureGeneration import *
+from Project.LostRepair.StackingV3.FeatureEngineering.FeatureBinning import *
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_auc_score
 from Project.LostRepair.StackingV3.Metric.Metrics import ar_ks
@@ -44,13 +45,26 @@ class FeatureEngineering(object):
         )
 
         # 分类变量与数值变量之间衍生变量
-        # Pandas in Numpy out (可以输出 Pandas)
+        # Pandas in Pandas out ( 预处理部分程序是基于 Numpy out )
         train_numeric, test_numeric = fg_categorical_numeric(
             train_categorical,
             train_numeric,
             test_categorical,
             test_numeric
         )
+
+        # # 分类变量分箱与 WoE 变换
+        # train_categorical, test_categorical = fb_categorical_linear_model(
+        #     train_categorical,
+        #     test_categorical,
+        #     train_label
+        # )
+        #
+        # train_numeric, test_numeric = fb_numeric_linear_model(
+        #     train_numeric,
+        #     test_numeric,
+        #     train_label
+        # )
 
         # 线性模型分类变量预处理
         # Pandas in Numpy out

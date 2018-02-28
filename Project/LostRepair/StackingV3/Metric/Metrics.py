@@ -10,18 +10,17 @@ def ar_ks(pred, target):
     all = pd.DataFrame(
         {
             "total": all_prepare.groupby(["pred"])["target"].count(),
+            "good": all_prepare.groupby(["pred"])["target"].count() - all_prepare.groupby(["pred"])["target"].sum(),
             "bad": all_prepare.groupby(["pred"])["target"].sum()
         }
     )
-    all["good"] = all["total"] - all["bad"]
     all.reset_index(drop=False, inplace=True)
-    # True 的概率由高到底
+    # True 的概率由高到底（分数由低到高）
     all.sort_values(by="pred", ascending=False, inplace=True)
-    all["totalPcnt"] = all["total"] / all["total"].sum()
-    all["badCumRate"] = all["bad"].cumsum() / all["bad"].sum()
-    all["goodCumRate"] = all["good"].cumsum() / all["good"].sum()
-    all = all[["pred", "total", "bad", "good", "totalPcnt", "badCumRate", "goodCumRate"]]
-    all.index = range(len(all))
+    for i in ["total", "good", "bad"]:
+        all[i+"Pcnt"] = all[i] / all[i].sum()
+        all[i+"CumRate"] = all[i].cumsum() / all[i].sum()
+    all.reset_index(drop=True, inplace=True)
 
     # 计算 ar
     ar_list = [1/2 * all.loc[0, "totalPcnt"] * all.loc[0, "badCumRate"]]
