@@ -4,29 +4,11 @@ import numpy as np
 import pandas as pd
 
 
-def encode_bad_rate(train_categorical, test_categorical, col, train_label):
-    train = pd.DataFrame({col: train_categorical[col], "label": train_label.squeeze()})
-    level_to_bad_rate = {}
-
-    total = train.groupby([col])["label"].count()
-    total = pd.DataFrame({"total": total})
-    bad = train.groupby([col])["label"].sum()
-    bad = pd.DataFrame({"bad": bad})
-    regroup = total.merge(bad, left_index=True, right_index=True, how="left")
-    regroup.reset_index(drop=False, inplace=True)
-
-    regroup["bad_rate"] = regroup["bad"] / regroup["total"]
-    for i, j in zip(regroup[col], regroup["bad_rate"]):
-        level_to_bad_rate[i] = j
-
-    return train_categorical[col].map(level_to_bad_rate), test_categorical[col].map(level_to_bad_rate)
-
-
 def maximum_bin_pcnt(train_categorical, col, train_label):
     # train_label 虽然只有一列但是 type 为 DataFrame
     train = pd.DataFrame({col: train_categorical[col], "label": train_label.squeeze()})
 
-    return np.max(train.groupby([col])[col].count() / train.shape[0]) > 0.9
+    return np.max(train.groupby([col])[col].count() / train.shape[0])
 
 
 def minimum_bad_bin_pcnt(train_categorical, col, train_label):
@@ -74,7 +56,7 @@ def value_to_bin(value, bin):
                 return bin[i+1]
 
 
-def chi_merge_bin(train_numeric, col=None, train_label=None, max_interval=5):
+def chi_merge_bin(train_numeric, col=None, train_label=None, max_bin=5):
     if train_numeric is pd.Series:
         train = pd.DataFrame({col: train_numeric, "label": train_label.squeeze()})
     else:
@@ -91,13 +73,13 @@ def chi_merge_bin(train_numeric, col=None, train_label=None, max_interval=5):
     total = pd.DataFrame({"total": total})
     bad = train.groupby([col])["label"].sum()
     bad = pd.DataFrame({"bad": bad})
-    regroup = total.merge(bad, left_index=True, right_index=True, how='left')
+    regroup = total.merge(bad, left_index=True, right_index=True, how="left")
     regroup.reset_index(drop=False, inplace=True)
 
     level = sorted(list(set(regroup[col])))
     level_regroup = [[i] for i in level]
     level_regroup_len = len(level_regroup)
-    while len(level_regroup) > max_interval:
+    while len(level_regroup) > max_bin:
         chi_list = []
         for level in level_regroup:
             level_regroup_mini = regroup.loc[regroup[col].isin(level), :]
@@ -118,11 +100,11 @@ def chi_merge_bin(train_numeric, col=None, train_label=None, max_interval=5):
                 combined_position = min_position - 1
             else:
                 combined_position = min_position + 1
+
         level_regroup[min_position] = level_regroup[min_position] + level_regroup[combined_position]
         level_regroup.remove(level_regroup[combined_position])
         level_regroup_len = len(level_regroup)
 
-    level_regroup = [sorted(i) for i in level_regroup]
     level_to_bin = [max(i) for i in level_regroup[:-1]]
 
     return level_to_bin
@@ -130,6 +112,7 @@ def chi_merge_bin(train_numeric, col=None, train_label=None, max_interval=5):
 
 def bad_rate_monotone(train_numeric, col, train_label):
     train = pd.DataFrame({col: train_numeric[col], "label": train_label.squeeze()})
+    train = train.loc[(train[col] != -1), :]
 
     total = train.groupby([col])["label"].count()
     total = pd.DataFrame({"total": total})
