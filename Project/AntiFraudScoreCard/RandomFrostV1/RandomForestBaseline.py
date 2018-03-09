@@ -3,9 +3,12 @@
 import os
 import numpy as np
 import pandas as pd
+from collections import Counter
 from sklearn_pandas import DataFrameMapper
 from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
+from imblearn.under_sampling import RandomUnderSampler
 from sklearn.metrics import roc_auc_score
 
 
@@ -27,12 +30,15 @@ class RandomForestBaseline(object):
 
     def read(self):
         self.__train_feature = pd.read_csv(os.path.join(self.__input_path, "train_feature.csv"), encoding="gbk")
-        self.__train_feature = self.__train_feature.drop("create_time", axis=1)
+        self.__train_feature = self.__train_feature.drop(["user_label", "loan_status", "cb0180003"], axis=1)
         self.__train_label = pd.read_csv(os.path.join(self.__input_path, "train_label.csv")).squeeze().values
 
         self.__test_feature = pd.read_csv(os.path.join(self.__input_path, "test_feature.csv"), encoding="gbk")
-        self.__test_feature = self.__test_feature.drop("create_time", axis=1)
+        self.__test_feature = self.__test_feature.drop(["user_label", "loan_status", "cb0180003"], axis=1)
         self.__test_label = pd.read_csv(os.path.join(self.__input_path, "test_label.csv")).squeeze().values
+
+        print(Counter(list(self.__train_label)))
+        print(Counter(list(self.__test_label)))
 
     def pre_processing(self):
         self.__numeric_header = [i for i in self.__train_feature.columns if i not in self.__categorical_header]
@@ -61,13 +67,16 @@ class RandomForestBaseline(object):
     def fit_predict(self):
         self.__rf = RandomForestClassifier()
         self.__rf.fit(self.__train_feature, self.__train_label)
-        print(roc_auc_score(self.__train_label, self.__rf.predict_proba(self.__train_feature)[:, 1]))
+        training_auc = round(roc_auc_score(self.__train_label, self.__rf.predict_proba(self.__train_feature)[:, 1]), 4)
+        testing_auc = round(roc_auc_score(self.__test_label, self.__rf.predict_proba(self.__test_feature)[:, 1]), 4)
+        print("training auc: " + str(training_auc))
+        print("testing auc: " + str(testing_auc))
 
 
 if __name__ == "__main__":
     rfb = RandomForestBaseline(
         input_path="C:\\Users\\Dell\\Desktop\\week\\FC\\anti_fraud\\data",
-        categorical_header=["cb0180003", "cb0180004", "ep0030004", "province_name"],
+        categorical_header=["cb0180003", "ep0030004", "province_name"],
     )
     rfb.read()
     rfb.pre_processing()
