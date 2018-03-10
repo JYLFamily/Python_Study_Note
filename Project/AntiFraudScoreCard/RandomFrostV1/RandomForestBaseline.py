@@ -65,7 +65,7 @@ class RandomForestBaseline(object):
         self.__test_feature = self.__test_feature.values
 
     def fit_predict(self):
-        self.__rf = RandomForestClassifier()
+        self.__rf = RandomForestClassifier(random_state=7)
         self.__rf.fit(self.__train_feature, self.__train_label)
         training_auc = round(roc_auc_score(self.__train_label, self.__rf.predict_proba(self.__train_feature)[:, 1]), 4)
         testing_auc = round(roc_auc_score(self.__test_label, self.__rf.predict_proba(self.__test_feature)[:, 1]), 4)
@@ -76,7 +76,7 @@ class RandomForestBaseline(object):
 if __name__ == "__main__":
     rfb = RandomForestBaseline(
         input_path="C:\\Users\\Dell\\Desktop\\week\\FC\\anti_fraud\\data",
-        categorical_header=["cb0180003", "ep0030004", "province_name"],
+        categorical_header=["ep0030004", "province_name"],
     )
     rfb.read()
     rfb.pre_processing()
