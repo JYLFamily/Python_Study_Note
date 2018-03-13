@@ -11,10 +11,10 @@ from imblearn.under_sampling import RandomUnderSampler
 from sklearn_pandas import DataFrameMapper
 from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import PredefinedSplit
-from sklearn.model_selection import GridSearchCV
+from bayes_opt import BayesianOptimization
 from sklearn.metrics import roc_auc_score
-from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 from mlxtend.evaluate import confusion_matrix
 from mlxtend.plotting import plot_confusion_matrix
@@ -47,9 +47,8 @@ class RandomForestBaseline(object):
         self.__test_numeric = None
 
         self.__rf = None
-        self.__ps = None
         self.__params = None
-        self.__clf = None
+        self.__rf_bo = None
         self.__test_predict = None
 
         self.__cm = None
@@ -71,10 +70,6 @@ class RandomForestBaseline(object):
         self.__train_label = self.__train_label.squeeze().values
         self.__validation_label = self.__validation_label.squeeze().values
         self.__test_label = self.__test_label.squeeze().values
-
-        print(self.__train_label.shape[0])
-        print(self.__validation_label.shape[0])
-        print(self.__test_label.shape[0])
 
     def pre_processing(self):
         self.__numeric_header = [i for i in self.__train_feature.columns if i not in self.__categorical_header]
@@ -112,9 +107,6 @@ class RandomForestBaseline(object):
         self.__test_feature = pd.concat([self.__test_categorical, self.__test_numeric], axis=1).values
 
     def re_sample(self):
-        print("Training Label: " + str(int(Counter(self.__train_label)[0] / Counter(self.__train_label)[1])))
-        print("Validation Label: " + str(int(Counter(self.__validation_label)[0] / Counter(self.__validation_label)[1])))
-        print("Testing Label: " + str(int(Counter(self.__test_label)[0] / Counter(self.__test_label)[1])))
         rus = RandomUnderSampler(random_state=7)
         self.__train_feature, self.__train_label = rus.fit_sample(self.__train_feature, self.__train_label)
 
@@ -124,29 +116,49 @@ class RandomForestBaseline(object):
         self.__train_validation_index[self.__train_label.shape[0]:] = -1
 
     def fit_predict(self):
-        self.__rf = RandomForestClassifier(random_state=7)
-        self.__ps = PredefinedSplit(self.__train_validation_index)
-        self.__params = {
-            "n_estimators": [5, 10],
-            "min_samples_leaf": [5, 10]
-        }
-        self.__clf = GridSearchCV(
-            estimator=self.__rf,
-            param_grid=self.__params,
-            scoring="recall",
-            n_jobs=-1,
-            refit=False,
-            cv=self.__ps
-        )
-        self.__clf.fit(self.__train_validation_feature, self.__train_validation_label)
-        print(self.__clf.best_params_)
-        self.__rf = RandomForestClassifier(** self.__clf.best_params_, random_state=7)
-        self.__rf.fit(self.__train_feature, self.__train_label)
+        def __rf_cv(n_estimators, min_samples_split, max_features):
+            ps = PredefinedSplit(self.__train_validation_index)
+            clf = RandomForestClassifier(
+                n_estimators=int(n_estimators),
+                min_samples_split=int(min_samples_split),
+                max_features=min(max_features, 0.999),
+                random_state=7
+            )
+            val = cross_val_score(
+                clf,
+                self.__train_validation_feature,
+                self.__train_validation_label,
+                scoring="recall",
+                cv=ps
+            ).mean()
 
+            return val
+
+        self.__params = {"n_estimators": (5, 250), "min_samples_split": (2, 25), "max_features": (0.1, 0.999)}
+        self.__rf_bo = BayesianOptimization(__rf_cv, self.__params, random_state=7)
+        self.__rf_bo.maximize(init_points=20, n_iter=100, ** {"alpha": 1e-5})
+
+        self.__rf = RandomForestClassifier(
+            n_estimators=int(self.__rf_bo.res["max"]["max_params"]["n_estimators"]),
+            min_samples_split=int(self.__rf_bo.res["max"]["max_params"]["min_samples_split"]),
+            max_features=round(self.__rf_bo.res["max"]["max_params"]["max_features"], 4),
+            random_state=7
+        )
+
+        # self.__rf = RandomForestClassifier(
+        #     n_estimators=10,
+        #     min_samples_split=2,
+        #     max_features=None,
+        #     random_state=7
+        # )
+
+        self.__rf.fit(self.__train_feature, self.__train_label)
         training_auc = round(roc_auc_score(self.__train_label, self.__rf.predict(self.__train_feature)), 4)
         validation_auc = round(roc_auc_score(self.__validation_label, self.__rf.predict(self.__validation_feature)), 4)
         testing_auc = round(roc_auc_score(self.__test_label, self.__rf.predict(self.__test_feature)), 4)
-
+        print("-" * 53)
+        print(self.__rf_bo.res["max"]["max_params"])
+        print("-" * 53)
         print("training auc: " + str(training_auc))
         print("validation auc: " + str(validation_auc))
         print("testing auc: " + str(testing_auc))
@@ -154,7 +166,7 @@ class RandomForestBaseline(object):
         training_recall = round(recall_score(self.__train_label, self.__rf.predict(self.__train_feature)), 4)
         validation_recall = round(recall_score(self.__validation_label, self.__rf.predict(self.__validation_feature)), 4)
         testing_recall = round(recall_score(self.__test_label, self.__rf.predict(self.__test_feature)), 4)
-
+        print("-" * 53)
         print("training recall: " + str(training_recall))
         print("validation recall: " + str(validation_recall))
         print("testing recall: " + str(testing_recall))
@@ -166,10 +178,10 @@ class RandomForestBaseline(object):
         sns.barplot(x="importance", y="feature", data=temp)
         plt.show()
 
-    # def plot_confusion_matrix(self):
-    #     self.__cm = confusion_matrix(y_target=self.__test_label, y_predicted=self.__test_predict)
-    #     _, _ = plot_confusion_matrix(conf_mat=self.__cm)
-    #     plt.show()
+    def plot_confusion_matrix(self):
+        self.__cm = confusion_matrix(y_target=self.__test_label, y_predicted=self.__test_predict)
+        _, _ = plot_confusion_matrix(conf_mat=self.__cm)
+        plt.show()
 
 
 if __name__ == "__main__":
@@ -183,5 +195,3 @@ if __name__ == "__main__":
     rfb.re_sample()
     rfb.fit_predict()
     rfb.plot_feature_importance()
-
-
