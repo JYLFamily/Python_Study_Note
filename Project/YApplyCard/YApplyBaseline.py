@@ -11,6 +11,7 @@ from sklearn.linear_model import LogisticRegression
 from mlxtend.feature_selection import SequentialFeatureSelector
 from sklearn.metrics import roc_auc_score
 from Project.LostRepair.StackingV3.Metric.Metrics import ar_ks_kendall_tau
+from sklearn.externals import joblib
 
 
 class YApplyBaseline(object):
@@ -45,6 +46,9 @@ class YApplyBaseline(object):
         self.__proba = None
         self.__score = None
 
+        self.__oot_us_feature_woe = None
+        self.__oot_us_label = None
+
     def type_transform(self):
         # self.__train_feature_woe = self.__train_feature_woe[["open_last_days", "morning_call", "communication_duration_calling", "integral", "not_natural_contact"]]
         # self.__validation_feature_woe = self.__validation_feature_woe[["open_last_days", "morning_call", "communication_duration_calling", "integral", "not_natural_contact"]]
@@ -75,7 +79,7 @@ class YApplyBaseline(object):
         self.__ps = PredefinedSplit(self.__train_us_validation_index)
         self.__sfs = SequentialFeatureSelector(
             estimator=self.__lr,
-            k_features=(1, 5),
+            k_features=(1, 11),
             forward=True,
             floating=True,
             scoring="roc_auc",
@@ -123,6 +127,16 @@ class YApplyBaseline(object):
         self.__score = self.__proba.apply(lambda x: 481.8621881 - 28.85390082 * np.log(x/(1-x)))
         ar_ks_kendall_tau(self.__score.values, self.__oot_label)
 
+    def model_persistence(self):
+        self.__oot_us_feature_woe, self.__oot_us_label = self.__rus.fit_sample(self.__oot_feature_woe, self.__oot_label)
+        self.__oot_us_feature_woe = self.__oot_us_feature_woe
+        # feature oot_us_feature_woe 已经删掉了经过 SFFS 不要的特征 , 所以能够直接 vstack
+        feature = np.vstack((self.__train_us_validation_us_feature_woe, self.__oot_us_feature_woe))
+        label = np.vstack((self.__train_us_validation_us_label.reshape((-1, 1)), self.__oot_us_label.reshape((-1, 1)))).reshape((-1,))
+
+        self.__lr.fit(feature, label)
+        joblib.dump(self.__lr, "C:\\Users\\Dell\\Desktop\\lr.z")
+
 
 if __name__ == "__main__":
     yab = YApplyBaseline(input_path="C:\\Users\\Dell\\Desktop\\week\\FC\\score_card\\yunyingshang\\2018-03-20\\data")
@@ -130,3 +144,4 @@ if __name__ == "__main__":
     yab.under_sampling()
     yab.hyper_parameter_tunning()
     yab.fit_predict()
+    yab.model_persistence()
