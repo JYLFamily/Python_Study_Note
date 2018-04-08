@@ -71,6 +71,7 @@ class YApplyBaseline(object):
         self.__train_us_validation_feature_woe = np.vstack((self.__train_us_feature_woe, self.__validation_feature_woe))
         self.__train_us_validation_label = np.vstack((self.__train_us_label.reshape((-1, 1)), self.__validation_label.reshape((-1, 1)))).reshape((-1, ))
         self.__train_us_validation_index = np.ones((self.__train_us_validation_label.shape[0], ))
+
         self.__train_us_validation_index[self.__train_us_label.shape[0]:] = -1
 
     def hyper_parameter_tunning(self):
@@ -128,13 +129,14 @@ class YApplyBaseline(object):
         ar_ks_kendall_tau(self.__score.values, self.__oot_label)
 
     def model_persistence(self):
-        self.__oot_us_feature_woe, self.__oot_us_label = self.__rus.fit_sample(self.__oot_feature_woe, self.__oot_label)
-        self.__oot_us_feature_woe = self.__oot_us_feature_woe
-        # feature oot_us_feature_woe 已经删掉了经过 SFFS 不要的特征 , 所以能够直接 vstack
-        feature = np.vstack((self.__train_us_validation_us_feature_woe, self.__oot_us_feature_woe))
-        label = np.vstack((self.__train_us_validation_us_label.reshape((-1, 1)), self.__oot_us_label.reshape((-1, 1)))).reshape((-1,))
-
-        self.__lr.fit(feature, label)
+        # self.__oot_us_feature_woe, self.__oot_us_label = self.__rus.fit_sample(self.__oot_feature_woe, self.__oot_label)
+        # self.__oot_us_feature_woe = self.__oot_us_feature_woe
+        # # feature oot_us_feature_woe 已经删掉了经过 SFFS 不要的特征 , 所以能够直接 vstack
+        # feature = np.vstack((self.__train_us_validation_us_feature_woe, self.__oot_us_feature_woe))
+        # label = np.vstack((self.__train_us_validation_us_label.reshape((-1, 1)), self.__oot_us_label.reshape((-1, 1)))).reshape((-1,))
+        #
+        # self.__lr.fit(feature, label)
+        # print(self.__lr.coef_)
         joblib.dump(self.__lr, "C:\\Users\\Dell\\Desktop\\lr.z")
 
 

@@ -11,7 +11,6 @@ from xgboost import XGBClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
-from collections import Counter
 from matplotlib import pyplot
 
 
@@ -36,8 +35,14 @@ class XgbBaselineV1(object):
         self.__eval_set = []
 
     def set_feature(self):
-        self.__train_feature = self.__train_feature.drop(["id_no", "apply_no", "create_date", "period", "real_amount", "status", "security_level"], axis=1)
-        self.__validation_feature = self.__validation_feature.drop(["id_no", "apply_no", "create_date", "period", "real_amount", "status", "security_level"], axis=1)
+        self.__train_feature = self.__train_feature.drop(
+            ["id_no", "apply_no", "create_date", "period", "real_amount", "status", "security_level", "product_price_sum", "product_num", "shop_name_num", "brand_num"]
+            , axis=1
+        )
+        self.__validation_feature = self.__validation_feature.drop(
+            ["id_no", "apply_no", "create_date", "period", "real_amount", "status", "security_level", "product_price_sum", "product_num", "shop_name_num", "brand_num"],
+            axis=1
+        )
 
         self.__train_feature = self.__train_feature.fillna(-999)
         self.__validation_feature = self.__validation_feature.fillna(-999)
@@ -88,7 +93,6 @@ class XgbBaselineV1(object):
                          "subsample": (0.3, 0.8), "colsample_bytree": (0.3, 0.8), "colsample_bylevel": (0.3, 0.8)}
         self.__xgb_bo = BayesianOptimization(__xgb_cv, self.__params, random_state=7)
         self.__xgb_bo.maximize(** {"alpha": 1e-5})
-        print(self.__xgb_bo.res["max"]["max_params"])
         self.__xgb = XGBClassifier(
             max_depth=int(self.__xgb_bo.res["max"]["max_params"]["max_depth"]),
             min_child_weight=round(self.__xgb_bo.res["max"]["max_params"]["min_child_weight"], 4),
@@ -106,7 +110,7 @@ class XgbBaselineV1(object):
         # 如何训练
         self.__eval_set.append((self.__train_us_feature, self.__train_us_label))
         self.__eval_set.append((self.__validation_feature, self.__validation_label))
-        self.__xgb.fit(self.__train_us_feature, self.__train_us_label, eval_metric=["mlogloss"], eval_set=self.__eval_set, early_stopping_rounds=20, verbose=True)
+        self.__xgb.fit(self.__train_us_feature, self.__train_us_label, eval_metric=["mlogloss"], eval_set=self.__eval_set, early_stopping_rounds=40, verbose=True)
 
         # 训练图示
         results = self.__xgb.evals_result()
@@ -121,10 +125,18 @@ class XgbBaselineV1(object):
         pyplot.title("Xgboost Log Loss")
         pyplot.show()
 
-        print(accuracy_score(self.__validation_label, self.__xgb.predict(self.__validation_feature)))
+        print(accuracy_score(self.__train_us_label, self.__xgb.predict(self.__train_us_feature, ntree_limit=self.__xgb.best_ntree_limit)))
+        print(accuracy_score(self.__validation_label, self.__xgb.predict(self.__validation_feature, ntree_limit=self.__xgb.best_ntree_limit)))
         print(precision_score(self.__validation_label, self.__xgb.predict(self.__validation_feature), average=None))
         print(recall_score(self.__validation_label, self.__xgb.predict(self.__validation_feature), average=None))
 
+        pd.Series(self.__xgb.predict(self.__train_us_feature, ntree_limit=self.__xgb.best_ntree_limit))\
+            .to_frame("predict_label")\
+            .to_csv("C:\\Users\\Dell\\Desktop\\train_predict.csv", index=False)
+
+        pd.Series(self.__xgb.predict(self.__validation_feature, ntree_limit=self.__xgb.best_ntree_limit))\
+            .to_frame("predict_label")\
+            .to_csv("C:\\Users\\Dell\\Desktop\\validation_predict.csv", index=False)
 
 if __name__ == "__main__":
     xbv = XgbBaselineV1(input_path="C:\\Users\\Dell\\Desktop\\week\\FC\\user_level\\data")
