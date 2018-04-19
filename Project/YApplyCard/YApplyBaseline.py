@@ -38,21 +38,18 @@ class YApplyBaseline(object):
         self.__sfs = None
         self.__param = None
         self.__lr_bo = None
-        self.__validation_us_feature_woe = None
-        self.__validation_us_label = None
-        self.__train_us_validation_us_feature_woe = None
-        self.__train_us_validation_us_label = None
 
-        self.__proba = None
-        self.__score = None
+        self.__train_proba = None
+        self.__train_score = None
+        self.__validation_proba = None
+        self.__validation_score = None
+        self.__oot_proba = None
+        self.__oot_score = None
 
         self.__oot_us_feature_woe = None
         self.__oot_us_label = None
 
     def type_transform(self):
-        # self.__train_feature_woe = self.__train_feature_woe[["open_last_days", "morning_call", "communication_duration_calling", "integral", "not_natural_contact"]]
-        # self.__validation_feature_woe = self.__validation_feature_woe[["open_last_days", "morning_call", "communication_duration_calling", "integral", "not_natural_contact"]]
-        # self.__oot_feature_woe = self.__oot_feature_woe[["open_last_days", "morning_call", "communication_duration_calling", "integral", "not_natural_contact"]]
         self.__feature_columns = self.__train_feature_woe.columns
 
         # Pandas to Numpy
@@ -65,13 +62,12 @@ class YApplyBaseline(object):
 
     def under_sampling(self):
         self.__rus = RandomUnderSampler(random_state=7)
-        # Pandas in Numpy out
         # Numpy in Numpy out
         self.__train_us_feature_woe, self.__train_us_label = self.__rus.fit_sample(self.__train_feature_woe, self.__train_label)
         self.__train_us_validation_feature_woe = np.vstack((self.__train_us_feature_woe, self.__validation_feature_woe))
         self.__train_us_validation_label = np.vstack((self.__train_us_label.reshape((-1, 1)), self.__validation_label.reshape((-1, 1)))).reshape((-1, ))
-        self.__train_us_validation_index = np.ones((self.__train_us_validation_label.shape[0], ))
 
+        self.__train_us_validation_index = np.ones((self.__train_us_validation_label.shape[0], ))
         self.__train_us_validation_index[self.__train_us_label.shape[0]:] = -1
 
     def hyper_parameter_tunning(self):
@@ -87,8 +83,14 @@ class YApplyBaseline(object):
             cv=self.__ps
         )
         self.__sfs.fit(self.__train_us_validation_feature_woe, self.__train_us_validation_label)
+        # 最终模型使用的 feature
         self.__feature_columns = self.__feature_columns[list(self.__sfs.k_feature_idx_)]
+        # Numpy 使用不同的方式进行索引 , OOT 已经不包含通过 SFFS 删掉的特征了
+        self.__train_feature_woe = self.__train_feature_woe[:, self.__sfs.k_feature_idx_]
         self.__train_us_feature_woe = self.__train_us_feature_woe[:, self.__sfs.k_feature_idx_]
+        self.__validation_feature_woe = self.__validation_feature_woe[:, self.__sfs.k_feature_idx_]
+
+        self.__train_us_validation_feature_woe = self.__train_us_validation_feature_woe[:, self.__sfs.k_feature_idx_]
 
         # 特征组合一定的条件下调整 LR 超参数 C
         def __lr_cv(C):
@@ -109,24 +111,22 @@ class YApplyBaseline(object):
         self.__param = {"C": (0.1, 100)}
         self.__lr_bo = BayesianOptimization(__lr_cv, self.__param, random_state=7)
         self.__lr_bo.maximize(** {"alpha": 1e-5})
-        # print(self.__lr_bo.res["max"]["max_val"])
-        # print(self.__lr_bo.res["max"]["max_params"]["C"])
-
-        self.__validation_us_feature_woe, self.__validation_us_label = self.__rus.fit_sample(self.__validation_feature_woe, self.__validation_label)
-        self.__validation_us_feature_woe = self.__validation_us_feature_woe[:, self.__sfs.k_feature_idx_]
-        self.__train_us_validation_us_feature_woe = np.vstack((self.__train_us_feature_woe, self.__validation_us_feature_woe))
-        self.__train_us_validation_us_label = np.vstack((self.__train_us_label.reshape((-1, 1)), self.__validation_us_label.reshape((-1, 1)))).reshape((-1, 1))
 
     def fit_predict(self):
         self.__lr = LogisticRegression(C=round(self.__lr_bo.res["max"]["max_params"]["C"], 4))
-        self.__lr.fit(self.__train_us_validation_us_feature_woe,  self.__train_us_validation_us_label)
-        print(self.__feature_columns)
-        print(self.__lr.coef_)
-        print(self.__lr.intercept_)
+        self.__lr.fit(self.__train_us_feature_woe,  self.__train_us_label)
 
-        self.__proba = pd.Series(self.__lr.predict_proba(self.__oot_feature_woe)[:, 1].reshape((-1, )))
-        self.__score = self.__proba.apply(lambda x: 481.8621881 - 28.85390082 * np.log(x/(1-x)))
-        ar_ks_kendall_tau(self.__score.values, self.__oot_label)
+        # self.__train_proba = pd.Series(self.__lr.predict_proba(self.__train_feature_woe)[:, 1].reshape((-1, )))
+        # self.__train_score = self.__train_proba.apply(lambda x: 481.8621881 - 57.70780164 * np.log(x/(1-x)))
+        # ar_ks_kendall_tau(self.__train_score.values, self.__train_label)
+        #
+        # self.__validation_proba = pd.Series(self.__lr.predict_proba(self.__validation_feature_woe)[:, 1].reshape((-1,)))
+        # self.__validation_score = self.__validation_proba.apply(lambda x: 481.8621881 - 57.70780164 * np.log(x / (1 - x)))
+        # ar_ks_kendall_tau(self.__validation_score.values, self.__validation_label)
+
+        self.__oot_proba = pd.Series(self.__lr.predict_proba(self.__oot_feature_woe)[:, 1].reshape((-1,)))
+        self.__oot_score = self.__oot_proba.apply(lambda x: 481.8621881 - 57.70780164 * np.log(x / (1 - x)))
+        ar_ks_kendall_tau(self.__oot_score.values, self.__oot_label)
 
     def model_persistence(self):
         # self.__oot_us_feature_woe, self.__oot_us_label = self.__rus.fit_sample(self.__oot_feature_woe, self.__oot_label)
@@ -146,4 +146,4 @@ if __name__ == "__main__":
     yab.under_sampling()
     yab.hyper_parameter_tunning()
     yab.fit_predict()
-    yab.model_persistence()
+    # yab.model_persistence()

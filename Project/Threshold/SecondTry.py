@@ -65,7 +65,7 @@ class FirstTry(object):
 
 
 if __name__ == "__main__":
-    score_df_path = "C:\\Users\\Dell\\Desktop\\week\\FC\\DecisionTreeFindOptimalSplitPoint\\2018_04_08\\data\\ma_score_new.csv"
+    score_df_path = "C:\\Users\\Dell\\Desktop\\week\\FC\\Threshold\\2018_04_08\\data\\ma_score_new.csv"
     label_df_path = "C:\\Users\\Dell\\Desktop\\week\\FC\\score_card\\yunyingshang\\before\\data\\fc_qianzhan_product_sample_user_feature_mobile.csv"
     score_df_use_cols = ["id_no", "grade_of_limit", "mobile_score_1", "taobao_score", "mobile_score_2", "anti_fraud_score", "combined_scores_01", "combined_scores_02"]
     label_df_use_cols = ["id_no", "user_label"]

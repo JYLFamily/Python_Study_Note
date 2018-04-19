@@ -5,7 +5,6 @@ import numpy as np
 import pandas as pd
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.tree import export_graphviz
-from IPython.display import Image
 
 
 class FirstTry(object):
@@ -29,7 +28,7 @@ class FirstTry(object):
         self.__dtc.fit(self.__score_label_df[["anti_fraud_score", "combined_scores_02"]], self.__score_label_df["user_label"])
 
     def stat_model(self):
-        print(self.__dtc.tree_.__getstate__())
+        pass
 
     def viz_model(self):
         self.__dot = export_graphviz(
@@ -37,16 +36,17 @@ class FirstTry(object):
             out_file=None,
             feature_names=["anti_fraud_score", "combined_scores_02"],
             class_names=["bad", "good"],
-            filled=True,
-            proportion=True,
-            rounded=True
+            filled=True,     # 二分类问题, 该叶子节点 majority class
+            node_ids=True,   # 树模型节点生成顺序
+            proportion=True, # 落在该叶子节点的样本比例
+            rounded=True     # 绘图相关
         )
         self.__graph = pydotplus.graph_from_dot_data(self.__dot)
         self.__graph.write_pdf("C:\\Users\\Dell\\Desktop\\graph.pdf")
 
 
 if __name__ == "__main__":
-    score_df_path = "C:\\Users\\Dell\\Desktop\\week\\FC\\DecisionTreeFindOptimalSplitPoint\\2018_04_08\\data\\ma_score_new.csv"
+    score_df_path = "C:\\Users\\Dell\\Desktop\\week\\FC\\Threshold\\2018_04_08\\data\\ma_score_new.csv"
     label_df_path = "C:\\Users\\Dell\\Desktop\\week\\FC\\score_card\\yunyingshang\\before\\data\\fc_qianzhan_product_sample_user_feature_mobile.csv"
     score_df_use_cols = ["id_no", "grade_of_limit", "mobile_score_1", "taobao_score", "mobile_score_2", "anti_fraud_score", "combined_scores_01", "combined_scores_02"]
     label_df_use_cols = ["id_no", "user_label"]

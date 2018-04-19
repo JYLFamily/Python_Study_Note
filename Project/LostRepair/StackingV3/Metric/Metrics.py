@@ -47,7 +47,7 @@ def ar_ks_kendall_tau(score, label=None, loan=True):
         left_ax.set_xlabel("score asc")
         left_ax.set_title("score distribution")
         left_ax.tick_params(axis="x", rotation=90)
-        right_ax.set_ylim(0, 1)
+        right_ax.set_ylim(0, bin_label_regroup_for_distribution["bad rate"].max() * 1.2)
         left_ax.bar(bin_label_regroup_for_distribution["bin"], bin_label_regroup_for_distribution["count"], label="count")
         right_ax.plot(bin_label_regroup_for_distribution["bin"], bin_label_regroup_for_distribution["bad rate"], color="y", marker="o", label="line")
         # 双坐标轴设置图例
