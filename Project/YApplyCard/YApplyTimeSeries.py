@@ -59,6 +59,7 @@ class YApplyTimeSeries(object):
         ))
 
     def optimizer_function(self):
+        self.__net.summary()
         self.__net.compile(
             loss=keras.losses.binary_crossentropy,
             optimizer=keras.optimizers.Adam(),
